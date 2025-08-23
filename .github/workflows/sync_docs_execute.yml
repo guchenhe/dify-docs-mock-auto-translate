@@ -5,7 +5,6 @@ on:
     workflows: ["Analyze Documentation Changes"]
     types:
       - completed
-    branches: [main, revamp]
   workflow_dispatch:
     inputs:
       pr_number:
@@ -139,27 +138,53 @@ jobs:
           SYNC_REQUIRED=$(python3 -c "import json; print(str(json.load(open('sync_plan.json'))['sync_required']).lower())")
           echo "sync_required=$SYNC_REQUIRED" >> $GITHUB_OUTPUT
 
-      - name: Checkout base repository
+      - name: Validate PR target branch
         if: steps.extract-artifacts.outputs.sync_required == 'true'
+        id: validate-target
+        run: |
+          PR_NUMBER="${{ steps.extract-artifacts.outputs.pr_number }}"
+          echo "Checking PR #$PR_NUMBER target branch..."
+          
+          # Get PR details
+          PR_DATA=$(curl -s \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER")
+          
+          BASE_BRANCH=$(echo "$PR_DATA" | jq -r '.base.ref')
+          echo "PR target branch: $BASE_BRANCH"
+          
+          # Check if targeting main or revamp branches
+          if [[ "$BASE_BRANCH" == "main" ]] || [[ "$BASE_BRANCH" == "revamp" ]]; then
+            echo "✅ PR targets allowed branch: $BASE_BRANCH"
+            echo "should_process=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️  PR targets non-automated branch: $BASE_BRANCH"
+            echo "Only PRs targeting 'main' or 'revamp' branches trigger auto-translation"
+            echo "should_process=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout base repository
+        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.validate-target.outputs.should_process == 'true'
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
       - name: Set up Python
-        if: steps.extract-artifacts.outputs.sync_required == 'true'
+        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.validate-target.outputs.should_process == 'true'
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
       - name: Install dependencies
-        if: steps.extract-artifacts.outputs.sync_required == 'true'
+        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.validate-target.outputs.should_process == 'true'
         run: |
           cd tools/translate
           pip install httpx aiofiles python-dotenv
 
       - name: Check for manual approval requirement
-        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.check-source.outputs.is_fork == 'true'
+        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.validate-target.outputs.should_process == 'true' && steps.check-source.outputs.is_fork == 'true'
         id: check-approval
         uses: actions/github-script@v7
         with:
@@ -217,7 +242,7 @@ jobs:
             core.setOutput('needs_approval', 'false');
 
       - name: Execute safe synchronization
-        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.check-approval.outputs.needs_approval != 'true'
+        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.validate-target.outputs.should_process == 'true' && steps.check-approval.outputs.needs_approval != 'true'
         id: sync
         env:
           DIFY_API_KEY: ${{ secrets.DIFY_API_KEY }}
@@ -397,15 +422,22 @@ jobs:
           EOF
           
           # Create the translation PR
+          echo "Creating translation PR..."
+          set +e  # Don't exit on error so we can capture it
           TRANSLATION_PR_URL=$(gh pr create \
             --base main \
             --head "$SYNC_BRANCH" \
             --title "🌐 Auto-translations for PR #${PR_NUMBER}: ${ORIGINAL_PR_TITLE}" \
             --body-file /tmp/translation_pr_body.md \
-            --label "🌐 translation" \
-            --label "🤖 automated" 2>/dev/null || echo "")
+            --label "translation" \
+            --label "automated" 2>&1)
+          CREATE_EXIT_CODE=$?
+          set -e  # Re-enable exit on error
           
-          if [ -n "$TRANSLATION_PR_URL" ]; then
+          echo "PR creation command exit code: $CREATE_EXIT_CODE"
+          echo "PR creation output: $TRANSLATION_PR_URL"
+          
+          if [ $CREATE_EXIT_CODE -eq 0 ] && [[ "$TRANSLATION_PR_URL" == *"github.com"* ]]; then
             # Extract PR number from URL
             TRANSLATION_PR_NUMBER=$(echo "$TRANSLATION_PR_URL" | grep -o '[0-9]\+$')
             echo "translation_pr_number=$TRANSLATION_PR_NUMBER" >> $GITHUB_OUTPUT
@@ -416,11 +448,13 @@ jobs:
             echo "✅ Translation PR created successfully: #${TRANSLATION_PR_NUMBER}"
           else
             echo "❌ Failed to create translation PR"
+            echo "Exit code: $CREATE_EXIT_CODE"
+            echo "Output: $TRANSLATION_PR_URL"
             echo "creation_successful=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Comment on original PR with translation PR link
-        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.check-approval.outputs.needs_approval != 'true'
+        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.validate-target.outputs.should_process == 'true' && steps.check-approval.outputs.needs_approval != 'true'
         uses: actions/github-script@v7
         with:
           script: |
