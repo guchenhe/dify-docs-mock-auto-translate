@@ -30,10 +30,7 @@
                                         "pages": [
                                             "en/documentation/pages/getting-started/introduction",
                                             "en/documentation/pages/getting-started/quick-start",
-                                            "en/documentation/pages/getting-started/key-concepts",
-                                            "en/documentation/pages/getting-started/advanced-setup",
-                                            "en/documentation/pages/getting-started/faq",
-                                            "en/documentation/pages/getting-started/test-internal"
+                                            "en/documentation/pages/getting-started/key-concepts"
                                         ]
                                     },
                                     {
@@ -359,8 +356,7 @@
                                         "pages": [
                                             "zh-hans/documentation/pages/getting-started/introduction",
                                             "zh-hans/documentation/pages/getting-started/quick-start",
-                                            "zh-hans/documentation/pages/getting-started/key-concepts",
-                                            "zh-hans/documentation/pages/getting-started/faq"
+                                            "zh-hans/documentation/pages/getting-started/key-concepts"
                                         ]
                                     },
                                     {
@@ -672,8 +668,7 @@
                                         "pages": [
                                             "ja-jp/documentation/pages/getting-started/introduction",
                                             "ja-jp/documentation/pages/getting-started/quick-start",
-                                            "ja-jp/documentation/pages/getting-started/key-concepts",
-                                            "ja-jp/documentation/pages/getting-started/faq"
+                                            "ja-jp/documentation/pages/getting-started/key-concepts"
                                         ]
                                     },
                                     {
