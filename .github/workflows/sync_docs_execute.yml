@@ -422,15 +422,22 @@ jobs:
           EOF
           
           # Create the translation PR
+          echo "Creating translation PR..."
+          set +e  # Don't exit on error so we can capture it
           TRANSLATION_PR_URL=$(gh pr create \
             --base main \
             --head "$SYNC_BRANCH" \
             --title "🌐 Auto-translations for PR #${PR_NUMBER}: ${ORIGINAL_PR_TITLE}" \
             --body-file /tmp/translation_pr_body.md \
-            --label "🌐 translation" \
-            --label "🤖 automated" 2>/dev/null || echo "")
+            --label "translation" \
+            --label "automated" 2>&1)
+          CREATE_EXIT_CODE=$?
+          set -e  # Re-enable exit on error
           
-          if [ -n "$TRANSLATION_PR_URL" ]; then
+          echo "PR creation command exit code: $CREATE_EXIT_CODE"
+          echo "PR creation output: $TRANSLATION_PR_URL"
+          
+          if [ $CREATE_EXIT_CODE -eq 0 ] && [[ "$TRANSLATION_PR_URL" == *"github.com"* ]]; then
             # Extract PR number from URL
             TRANSLATION_PR_NUMBER=$(echo "$TRANSLATION_PR_URL" | grep -o '[0-9]\+$')
             echo "translation_pr_number=$TRANSLATION_PR_NUMBER" >> $GITHUB_OUTPUT
@@ -441,6 +448,8 @@ jobs:
             echo "✅ Translation PR created successfully: #${TRANSLATION_PR_NUMBER}"
           else
             echo "❌ Failed to create translation PR"
+            echo "Exit code: $CREATE_EXIT_CODE"
+            echo "Output: $TRANSLATION_PR_URL"
             echo "creation_successful=false" >> $GITHUB_OUTPUT
           fi
 
