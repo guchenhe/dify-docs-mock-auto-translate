@@ -1,0 +1,187 @@
+> ⚠️ このドキュメントはAIによって自動翻訳されています。不正確な部分がある場合は、[英語版](../../../../en/documentation/pages/getting-started/advanced-setup.mdx)を参照してください。
+
+---
+title: 高度なセットアップガイド
+description: Learn how to configure advanced settings for your Dify installation
+---
+
+<Info>
+ワークフローテスト目的！
+</Info>
+
+このガイドでは、基本的なインストールを超えたDifyの高度な設定オプションについて説明します。
+
+## 環境変数
+
+最適なパフォーマンスのために、以下の高度な環境変数を設定してください：
+
+### データベース設定
+
+```bash
+# Database connection pooling
+DB_POOL_SIZE=10
+DB_MAX_OVERFLOW=20
+DB_POOL_TIMEOUT=30
+
+# Database performance tuning
+DB_QUERY_TIMEOUT=60
+DB_SLOW_QUERY_THRESHOLD=1000
+```
+
+### Redis設定
+
+```bash
+# Redis connection settings
+REDIS_MAX_CONNECTIONS=100
+REDIS_CONNECTION_TIMEOUT=5
+REDIS_SOCKET_TIMEOUT=5
+
+# Redis cluster settings
+REDIS_CLUSTER_ENABLED=false
+REDIS_CLUSTER_NODES=redis-1:6379,redis-2:6379,redis-3:6379
+```
+
+## パフォーマンス最適化
+
+### メモリ管理
+
+サーバー仕様に基づいてメモリ設定を構成してください：
+
+- **小規模デプロイメント（2-4GB RAM）：** `WORKER_MEMORY_LIMIT=512MB` を設定
+- **中規模デプロイメント（8-16GB RAM）：** `WORKER_MEMORY_LIMIT=2GB` を設定
+- **大規模デプロイメント（32GB以上のRAM）：** `WORKER_MEMORY_LIMIT=4GB` を設定
+
+### CPU最適化
+
+CPUコア数に基づいてワーカープロセスを調整してください：
+
+```bash
+# Calculate optimal workers: CPU cores × 2 + 1
+WEB_WORKER_COUNT=5
+CELERY_WORKER_COUNT=4
+```
+
+## セキュリティ強化
+
+### SSL/TLS設定
+
+本番デプロイメントでHTTPSを有効にしてください：
+
+```bash
+# SSL settings
+FORCE_SSL=true
+SSL_CERT_PATH=/path/to/cert.pem
+SSL_KEY_PATH=/path/to/key.pem
+```
+
+### APIセキュリティ
+
+レート制限と認証を設定してください：
+
+```bash
+# Rate limiting
+API_RATE_LIMIT_ENABLED=true
+API_RATE_LIMIT_REQUESTS=1000
+API_RATE_LIMIT_WINDOW=3600
+
+# Authentication
+JWT_SECRET_KEY=your-secret-key-here
+JWT_ACCESS_TOKEN_EXPIRES=3600
+```
+
+## 監視とログ記録
+
+### アプリケーション監視
+
+本番環境の監視を設定してください：
+
+```bash
+# Monitoring settings
+ENABLE_METRICS=true
+METRICS_PORT=9090
+HEALTH_CHECK_ENDPOINT=/health
+```
+
+### ログ設定
+
+ログレベルと出力を設定してください：
+
+```bash
+# Logging settings
+LOG_LEVEL=INFO
+LOG_FORMAT=json
+LOG_FILE_ROTATION=daily
+LOG_RETENTION_DAYS=30
+```
+
+## バックアップと復旧
+
+### データベースバックアップ
+
+自動データベースバックアップを設定してください：
+
+```bash
+# Backup configuration
+BACKUP_ENABLED=true
+BACKUP_SCHEDULE="0 2 * * *"  # Daily at 2 AM
+BACKUP_RETENTION_DAYS=7
+BACKUP_S3_BUCKET=dify-backups
+```
+
+### ファイルストレージバックアップ
+
+ファイルストレージのバックアップ戦略を設定してください：
+
+```bash
+# File backup settings
+FILE_BACKUP_ENABLED=true
+FILE_BACKUP_DESTINATION=s3://dify-file-backups
+FILE_BACKUP_ENCRYPTION=true
+```
+
+## スケーリングに関する考慮事項
+
+### 水平スケーリング
+
+高トラフィックデプロイメントでは、以下を検討してください：
+
+1. **ロードバランサー設定**
+2. **データベースクラスタリング**
+3. **Redisクラスタリング**
+4. **Kubernetesを使用したコンテナオーケストレーション**
+
+### 垂直スケーリング
+
+リソース配分を最適化してください：
+
+- CPUとメモリ使用量を監視
+- 負荷に基づいてワーカー数を調整
+- 自動スケーリングポリシーの実装
+
+## トラブルシューティング
+
+### よくある問題
+
+**高メモリ使用量：**
+- カスタムツールでのメモリリークを確認
+- ワーカーメモリ制限を削減
+- メモリプロファイリングを有効化
+
+**遅いレスポンス時間：**
+- データベースクエリを最適化
+- Redisキャッシングを有効化
+- APIレート制限を確認
+
+**接続エラー：**
+- ネットワーク接続を確認
+- ファイアウォール設定を確認
+- SSL証明書を検証
+
+## 次の完了後：
+
+1. パフォーマンスベンチマークを実行
+2. 監視ダッシュボードを設定
+3. 自動バックアップを設定
+4. 設定を文書化
+
+追加サポートについては、[トラブルシューティングガイド](/en/documentation/pages/debug/error-type)を参照するか、コミュニティにお問い合わせください。

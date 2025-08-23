@@ -1,0 +1,189 @@
+> ⚠️ 本文档由 AI 自动翻译。如有任何不准确之处，请参考[英文原版](../../../../en/documentation/pages/getting-started/advanced-setup.mdx)。
+
+---
+title: 高级设置指南
+description: Learn how to configure advanced settings for your Dify installation
+---
+
+<Info>
+用于工作流测试目的！
+</Info>
+
+本指南涵盖了超越基础安装的 Dify 高级配置选项。
+
+## 环境变量
+
+配置这些高级环境变量以获得最佳性能：
+
+### 数据库配置
+
+```bash
+# Database connection pooling
+DB_POOL_SIZE=10
+DB_MAX_OVERFLOW=20
+DB_POOL_TIMEOUT=30
+
+# Database performance tuning
+DB_QUERY_TIMEOUT=60
+DB_SLOW_QUERY_THRESHOLD=1000
+```
+
+### Redis 配置
+
+```bash
+# Redis connection settings
+REDIS_MAX_CONNECTIONS=100
+REDIS_CONNECTION_TIMEOUT=5
+REDIS_SOCKET_TIMEOUT=5
+
+# Redis cluster settings
+REDIS_CLUSTER_ENABLED=false
+REDIS_CLUSTER_NODES=redis-1:6379,redis-2:6379,redis-3:6379
+```
+
+## 性能优化
+
+### 内存管理
+
+根据您的服务器规格配置内存设置：
+
+- **小型部署 (2-4GB RAM)：** 设置 `WORKER_MEMORY_LIMIT=512MB`
+- **中型部署 (8-16GB RAM)：** 设置 `WORKER_MEMORY_LIMIT=2GB`
+- **大型部署 (32GB+ RAM)：** 设置 `WORKER_MEMORY_LIMIT=4GB`
+
+### CPU 优化
+
+根据 CPU 核心数调整工作进程：
+
+```bash
+# Calculate optimal workers: CPU cores × 2 + 1
+WEB_WORKER_COUNT=5
+CELERY_WORKER_COUNT=4
+```
+
+## 安全加固
+
+### SSL/TLS 配置
+
+为生产部署启用 HTTPS：
+
+```bash
+# SSL settings
+FORCE_SSL=true
+SSL_CERT_PATH=/path/to/cert.pem
+SSL_KEY_PATH=/path/to/key.pem
+```
+
+### API 安全
+
+配置限速和身份验证：
+
+```bash
+# Rate limiting
+API_RATE_LIMIT_ENABLED=true
+API_RATE_LIMIT_REQUESTS=1000
+API_RATE_LIMIT_WINDOW=3600
+
+# Authentication
+JWT_SECRET_KEY=your-secret-key-here
+JWT_ACCESS_TOKEN_EXPIRES=3600
+```
+
+## 监控和日志记录
+
+### 应用程序监控
+
+为生产环境设置监控：
+
+```bash
+# Monitoring settings
+ENABLE_METRICS=true
+METRICS_PORT=9090
+HEALTH_CHECK_ENDPOINT=/health
+```
+
+### 日志配置
+
+配置日志级别和输出：
+
+```bash
+# Logging settings
+LOG_LEVEL=INFO
+LOG_FORMAT=json
+LOG_FILE_ROTATION=daily
+LOG_RETENTION_DAYS=30
+```
+
+## 备份和恢复
+
+### 数据库备份
+
+设置自动数据库备份：
+
+```bash
+# Backup configuration
+BACKUP_ENABLED=true
+BACKUP_SCHEDULE="0 2 * * *"  # Daily at 2 AM
+BACKUP_RETENTION_DAYS=7
+BACKUP_S3_BUCKET=dify-backups
+```
+
+### 文件存储备份
+
+配置文件存储备份策略：
+
+```bash
+# File backup settings
+FILE_BACKUP_ENABLED=true
+FILE_BACKUP_DESTINATION=s3://dify-file-backups
+FILE_BACKUP_ENCRYPTION=true
+```
+
+## 扩展考虑
+
+### 水平扩展
+
+对于高流量部署，请考虑：
+
+1. **负载均衡器配置**
+2. **数据库集群**
+3. **Redis 集群**
+4. **使用 Kubernetes 进行容器编排**
+
+### 垂直扩展
+
+优化资源分配：
+
+- 监控 CPU 和内存使用情况
+- 根据负载调整工作进程数量
+- 实施自动扩展策略
+
+## 故障排除
+
+### 常见问题
+
+**高内存使用：**
+- 检查自定义工具中的内存泄漏
+- 减少工作进程内存限制
+- 启用内存性能分析
+
+**响应时间慢：**
+- 优化数据库查询
+- 启用 Redis 缓存
+- 检查 API 限速设置
+
+**连接错误：**
+- 验证网络连接
+- 检查防火墙设置
+- 验证 SSL 证书
+
+## 后续步骤
+
+完成高级设置后：
+
+1. 运行性能基准测试
+2. 设置监控仪表板
+3. 配置自动备份
+4. 记录您的配置
+
+如需更多支持，请参考[故障排除指南](/en/documentation/pages/debug/error-type)或联系社区。
