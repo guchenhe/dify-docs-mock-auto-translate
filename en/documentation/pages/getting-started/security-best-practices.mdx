@@ -1,0 +1,498 @@
+---
+title: "Security Best Practices"
+description: "Essential security practices for Dify applications"
+icon: "shield"
+---
+
+Security is paramount when building and deploying AI applications. This guide outlines essential security practices to protect your Dify applications, user data, and infrastructure.
+
+## Authentication & Authorization
+
+### API Key Management
+
+Protect your API keys with these practices:
+
+```javascript
+// ❌ Bad: Exposing API keys in client-side code
+const apiKey = 'sk-1234567890abcdef';
+
+// ✅ Good: Use environment variables
+const apiKey = process.env.DIFY_API_KEY;
+
+// ✅ Good: Server-side proxy for client requests
+app.post('/api/chat', authenticateUser, (req, res) => {
+  // Use server-stored API key
+  const response = await dify.chat(process.env.DIFY_API_KEY, req.body);
+  res.json(response);
+});
+```
+
+### User Authentication
+
+Implement robust user authentication:
+
+```javascript
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+
+// Password hashing
+const hashPassword = async (password) => {
+  const saltRounds = 12;
+  return await bcrypt.hash(password, saltRounds);
+};
+
+// JWT token generation
+const generateToken = (userId) => {
+  return jwt.sign(
+    { userId },
+    process.env.JWT_SECRET,
+    { expiresIn: '24h' }
+  );
+};
+
+// Authentication middleware
+const authenticateToken = (req, res, next) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ error: 'Access token required' });
+  }
+  
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Invalid token' });
+    }
+    req.user = user;
+    next();
+  });
+};
+```
+
+## Data Protection
+
+### Input Validation & Sanitization
+
+Always validate and sanitize user inputs:
+
+```javascript
+const { body, validationResult } = require('express-validator');
+
+// Input validation rules
+const validateChatMessage = [
+  body('message')
+    .isLength({ min: 1, max: 4000 })
+    .withMessage('Message must be 1-4000 characters')
+    .escape()
+    .trim(),
+  body('conversationId')
+    .optional()
+    .isUUID()
+    .withMessage('Invalid conversation ID format'),
+];
+
+// Validation middleware
+app.post('/api/chat', validateChatMessage, (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  
+  // Process validated input
+  const { message, conversationId } = req.body;
+  // ... rest of chat logic
+});
+```
+
+### SQL Injection Prevention
+
+Use parameterized queries:
+
+```javascript
+// ❌ Bad: String concatenation (vulnerable to SQL injection)
+const query = `SELECT * FROM conversations WHERE user_id = '${userId}'`;
+
+// ✅ Good: Parameterized query
+const query = 'SELECT * FROM conversations WHERE user_id = $1';
+const result = await db.query(query, [userId]);
+```
+
+### XSS Prevention
+
+Implement proper output encoding:
+
+```javascript
+const helmet = require('helmet');
+const xss = require('xss');
+
+// Use helmet for security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+}));
+
+// Sanitize user-generated content
+const sanitizeHtml = (html) => {
+  return xss(html, {
+    whiteList: {
+      p: [],
+      br: [],
+      strong: [],
+      em: [],
+    },
+  });
+};
+```
+
+## Secure Communication
+
+### HTTPS/TLS Configuration
+
+Always use HTTPS in production:
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name yourdomain.com;
+    
+    # SSL Configuration
+    ssl_certificate /path/to/certificate.crt;
+    ssl_certificate_key /path/to/private.key;
+    
+    # Modern TLS configuration
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256;
+    ssl_prefer_server_ciphers off;
+    
+    # Security headers
+    add_header X-Frame-Options DENY always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### API Rate Limiting
+
+Implement rate limiting to prevent abuse:
+
+```javascript
+const rateLimit = require('express-rate-limit');
+
+// General API rate limiting
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Stricter limits for AI endpoints
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // limit each IP to 10 AI requests per minute
+  message: 'AI request rate limit exceeded',
+});
+
+app.use('/api/', apiLimiter);
+app.use('/api/chat', aiLimiter);
+```
+
+## Environment Security
+
+### Environment Variables
+
+Secure handling of sensitive configuration:
+
+```bash
+# .env file (never commit to version control)
+NODE_ENV=production
+DATABASE_URL=postgresql://user:password@host:5432/db
+DIFY_API_KEY=your_secret_api_key
+JWT_SECRET=your_jwt_secret_key
+ENCRYPTION_KEY=your_32_character_encryption_key
+```
+
+```javascript
+// Environment validation
+const requiredEnvVars = [
+  'DATABASE_URL',
+  'DIFY_API_KEY',
+  'JWT_SECRET',
+  'ENCRYPTION_KEY'
+];
+
+requiredEnvVars.forEach(envVar => {
+  if (!process.env[envVar]) {
+    console.error(`Missing required environment variable: ${envVar}`);
+    process.exit(1);
+  }
+});
+```
+
+### Secrets Management
+
+Use proper secrets management:
+
+```javascript
+// Using AWS Secrets Manager
+const AWS = require('aws-sdk');
+const secretsManager = new AWS.SecretsManager();
+
+const getSecret = async (secretName) => {
+  try {
+    const result = await secretsManager.getSecretValue({ SecretId: secretName }).promise();
+    return JSON.parse(result.SecretString);
+  } catch (error) {
+    console.error('Error retrieving secret:', error);
+    throw error;
+  }
+};
+
+// Initialize with secrets
+const initializeSecrets = async () => {
+  const secrets = await getSecret('dify-app-secrets');
+  process.env.DIFY_API_KEY = secrets.difyApiKey;
+  process.env.DATABASE_URL = secrets.databaseUrl;
+};
+```
+
+## Data Privacy & Compliance
+
+### GDPR Compliance
+
+Implement data protection measures:
+
+```javascript
+// Data anonymization
+const anonymizeUserData = (userData) => {
+  return {
+    ...userData,
+    email: userData.email.replace(/(.{2}).*(@.*)/, '$1***$2'),
+    name: userData.name.replace(/^(.).*/, '$1***'),
+    ip: userData.ip.replace(/(\d+\.\d+\.\d+)\.\d+/, '$1.***'),
+  };
+};
+
+// Data deletion endpoint
+app.delete('/api/user/:id/data', authenticateUser, async (req, res) => {
+  const userId = req.params.id;
+  
+  // Verify user owns this data or is admin
+  if (req.user.id !== userId && !req.user.isAdmin) {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+  
+  try {
+    // Delete user data from all tables
+    await db.query('DELETE FROM conversations WHERE user_id = $1', [userId]);
+    await db.query('DELETE FROM messages WHERE user_id = $1', [userId]);
+    await db.query('DELETE FROM user_profiles WHERE user_id = $1', [userId]);
+    
+    res.json({ message: 'User data deleted successfully' });
+  } catch (error) {
+    console.error('Data deletion error:', error);
+    res.status(500).json({ error: 'Failed to delete user data' });
+  }
+});
+```
+
+### Data Encryption
+
+Encrypt sensitive data:
+
+```javascript
+const crypto = require('crypto');
+
+const encrypt = (text, key) => {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipher('aes-256-cbc', key, iv);
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return iv.toString('hex') + ':' + encrypted;
+};
+
+const decrypt = (encryptedData, key) => {
+  const [ivHex, encrypted] = encryptedData.split(':');
+  const iv = Buffer.from(ivHex, 'hex');
+  const decipher = crypto.createDecipher('aes-256-cbc', key, iv);
+  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  return decrypted;
+};
+
+// Store encrypted sensitive data
+const storeSensitiveData = async (userId, data) => {
+  const encryptedData = encrypt(JSON.stringify(data), process.env.ENCRYPTION_KEY);
+  await db.query(
+    'INSERT INTO user_sensitive_data (user_id, encrypted_data) VALUES ($1, $2)',
+    [userId, encryptedData]
+  );
+};
+```
+
+## Monitoring & Incident Response
+
+### Security Logging
+
+Implement comprehensive security logging:
+
+```javascript
+const winston = require('winston');
+
+const securityLogger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.File({ filename: 'security.log' }),
+    new winston.transports.Console()
+  ]
+});
+
+// Log security events
+const logSecurityEvent = (eventType, details) => {
+  securityLogger.warn('Security Event', {
+    type: eventType,
+    timestamp: new Date().toISOString(),
+    ...details
+  });
+};
+
+// Example: Log failed login attempts
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  
+  try {
+    const user = await authenticateUser(email, password);
+    if (!user) {
+      logSecurityEvent('FAILED_LOGIN', {
+        email: email,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    // Successful login
+    res.json({ token: generateToken(user.id) });
+  } catch (error) {
+    logSecurityEvent('LOGIN_ERROR', {
+      email: email,
+      error: error.message,
+      ip: req.ip
+    });
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+```
+
+### Intrusion Detection
+
+Monitor for suspicious activities:
+
+```javascript
+const suspiciousActivityDetector = {
+  failedAttempts: new Map(),
+  
+  recordFailedAttempt: (ip) => {
+    const attempts = this.failedAttempts.get(ip) || 0;
+    this.failedAttempts.set(ip, attempts + 1);
+    
+    if (attempts > 5) {
+      logSecurityEvent('POTENTIAL_BRUTE_FORCE', {
+        ip: ip,
+        attempts: attempts + 1
+      });
+      
+      // Implement temporary IP blocking
+      this.blockIP(ip);
+    }
+  },
+  
+  blockIP: (ip) => {
+    // Add IP to blocked list (implement your blocking mechanism)
+    logSecurityEvent('IP_BLOCKED', { ip: ip });
+  }
+};
+```
+
+## Security Checklist
+
+Before deploying to production:
+
+- [ ] All API keys stored securely (environment variables/secrets manager)
+- [ ] HTTPS enabled with valid SSL certificates
+- [ ] Input validation implemented for all user inputs
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] XSS prevention (output encoding, CSP headers)
+- [ ] Authentication and authorization implemented
+- [ ] Rate limiting configured
+- [ ] Security headers configured
+- [ ] Sensitive data encrypted
+- [ ] Logging and monitoring implemented
+- [ ] Error handling doesn't expose sensitive information
+- [ ] Regular security updates scheduled
+- [ ] Backup and recovery procedures tested
+
+## Emergency Response
+
+### Incident Response Plan
+
+1. **Detection**: Monitor logs and alerts
+2. **Assessment**: Determine scope and impact
+3. **Containment**: Isolate affected systems
+4. **Eradication**: Remove threats and vulnerabilities
+5. **Recovery**: Restore normal operations
+6. **Lessons Learned**: Document and improve procedures
+
+### Security Contacts
+
+```javascript
+const securityContacts = {
+  security_team: 'security@company.com',
+  incident_response: 'incident@company.com',
+  emergency_hotline: '+1-XXX-XXX-XXXX'
+};
+
+// Automated alert system
+const alertSecurityTeam = async (severity, message) => {
+  if (severity === 'critical') {
+    // Send immediate alerts
+    await sendEmail(securityContacts.incident_response, 'CRITICAL SECURITY ALERT', message);
+    await sendSMS(securityContacts.emergency_hotline, message);
+  }
+};
+```
+
+## Conclusion
+
+Security is an ongoing process, not a one-time implementation. Regularly review and update your security practices, conduct security audits, and stay informed about the latest threats and mitigation strategies.
+
+Remember: **Security by Design** - integrate security considerations into every aspect of your application development lifecycle.
+
+{/*
+Contributing Section
+DO NOT edit this section!
+It will be automatically generated by the script.
+*/}
+
+---
+
+[Edit this page](https://github.com/langgenius/dify-docs/edit/main/en/documentation/pages/getting-started/security-best-practices.mdx) | [Report an issue](https://github.com/langgenius/dify-docs/issues/new?template=docs.yml)
