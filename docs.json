@@ -30,7 +30,8 @@
                                         "pages": [
                                             "en/documentation/pages/getting-started/introduction",
                                             "en/documentation/pages/getting-started/quick-start",
-                                            "en/documentation/pages/getting-started/key-concepts"
+                                            "en/documentation/pages/getting-started/key-concepts",
+                                            "en/documentation/pages/getting-started/troubleshooting-guide"
                                         ]
                                     },
                                     {
@@ -242,7 +243,6 @@
                                         ]
                                     }
                                 ]
-                                
                             },
                             {
                                 "group": "Contribution & Publishing",
@@ -356,7 +356,8 @@
                                         "pages": [
                                             "zh-hans/documentation/pages/getting-started/introduction",
                                             "zh-hans/documentation/pages/getting-started/quick-start",
-                                            "zh-hans/documentation/pages/getting-started/key-concepts"
+                                            "zh-hans/documentation/pages/getting-started/key-concepts",
+                                            "zh-hans/documentation/pages/getting-started/troubleshooting-guide"
                                         ]
                                     },
                                     {
@@ -668,7 +669,8 @@
                                         "pages": [
                                             "ja-jp/documentation/pages/getting-started/introduction",
                                             "ja-jp/documentation/pages/getting-started/quick-start",
-                                            "ja-jp/documentation/pages/getting-started/key-concepts"
+                                            "ja-jp/documentation/pages/getting-started/key-concepts",
+                                            "ja-jp/documentation/pages/getting-started/troubleshooting-guide"
                                         ]
                                     },
                                     {
