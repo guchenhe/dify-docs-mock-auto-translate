@@ -29,8 +29,7 @@
                                         "group": "Getting Started",
                                         "pages": [
                                             "en/documentation/pages/getting-started/introduction",
-                                            "en/documentation/pages/getting-started/quick-start",
-                                            "en/documentation/pages/getting-started/key-concepts"
+                                            "en/documentation/pages/getting-started/quick-start"
                                         ]
                                     },
                                     {
@@ -242,7 +241,6 @@
                                         ]
                                     }
                                 ]
-                                
                             },
                             {
                                 "group": "Contribution & Publishing",
@@ -355,8 +353,7 @@
                                         "group": "快速开始",
                                         "pages": [
                                             "zh-hans/documentation/pages/getting-started/introduction",
-                                            "zh-hans/documentation/pages/getting-started/quick-start",
-                                            "zh-hans/documentation/pages/getting-started/key-concepts"
+                                            "zh-hans/documentation/pages/getting-started/quick-start"
                                         ]
                                     },
                                     {
@@ -667,8 +664,7 @@
                                         "group": "はじめに",
                                         "pages": [
                                             "ja-jp/documentation/pages/getting-started/introduction",
-                                            "ja-jp/documentation/pages/getting-started/quick-start",
-                                            "ja-jp/documentation/pages/getting-started/key-concepts"
+                                            "ja-jp/documentation/pages/getting-started/quick-start"
                                         ]
                                     },
                                     {
