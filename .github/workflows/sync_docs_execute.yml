@@ -267,8 +267,9 @@ jobs:
           import asyncio
           from pathlib import Path
           
-          # Add tools/translate directory to path (script runs from repo root)
-          sys.path.append('tools/translate')
+          # Add tools/translate directory to path (use GITHUB_WORKSPACE)
+          workspace = os.environ.get('GITHUB_WORKSPACE', '.')
+          sys.path.append(os.path.join(workspace, 'tools', 'translate'))
           from sync_and_translate import DocsSynchronizer
           
           async def secure_sync():
