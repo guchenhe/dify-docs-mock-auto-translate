@@ -267,8 +267,8 @@ jobs:
           import asyncio
           from pathlib import Path
           
-          # Add parent directory to path
-          sys.path.append(os.path.dirname(__file__))
+          # Add tools/translate directory to path (script runs from repo root)
+          sys.path.append('tools/translate')
           from sync_and_translate import DocsSynchronizer
           
           async def secure_sync():
