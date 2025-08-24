@@ -289,6 +289,15 @@ jobs:
             fi
           done < /tmp/files_to_copy.txt
           
+          # Also check if docs.json was updated in the PR and copy it
+          if git show "$PR_HEAD_SHA:docs.json" > /tmp/pr_docs.json 2>/dev/null; then
+            echo "Copying updated docs.json from PR branch..."
+            cp /tmp/pr_docs.json docs.json
+            echo "✅ Updated docs.json from PR applied"
+          else
+            echo "No docs.json changes in PR"
+          fi
+          
           echo "✅ PR files prepared for translation"
 
       - name: Execute safe synchronization
