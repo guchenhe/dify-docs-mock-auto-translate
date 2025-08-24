@@ -241,6 +241,56 @@ jobs:
             
             core.setOutput('needs_approval', 'false');
 
+      - name: Prepare PR files for translation
+        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.validate-target.outputs.should_process == 'true' && steps.check-approval.outputs.needs_approval != 'true'
+        id: prepare-pr-files
+        run: |
+          PR_NUMBER="${{ steps.extract-artifacts.outputs.pr_number }}"
+          WORK_DIR="${{ steps.extract-artifacts.outputs.work_dir }}"
+          
+          echo "Preparing PR #$PR_NUMBER files for translation..."
+          
+          # Get PR branch info
+          PR_DATA=$(curl -s \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER")
+          
+          PR_HEAD_BRANCH=$(echo "$PR_DATA" | jq -r '.head.ref')
+          PR_HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
+          
+          echo "PR branch: $PR_HEAD_BRANCH"
+          echo "PR SHA: $PR_HEAD_SHA"
+          
+          # Fetch the PR branch 
+          git fetch origin "$PR_HEAD_BRANCH"
+          
+          # Create a temporary directory for PR files
+          mkdir -p /tmp/pr_files
+          
+          # Get list of files to process from sync plan
+          cd "$WORK_DIR"
+          python3 -c "
+          import json
+          with open('sync_plan.json') as f:
+              sync_plan = json.load(f)
+          files_to_sync = sync_plan.get('files_to_sync', [])
+          for file_info in files_to_sync:
+              print(file_info['path'])
+          " > /tmp/files_to_copy.txt
+          
+          # Copy each file from PR branch to temp location
+          cd /github/workspace
+          while IFS= read -r file_path; do
+            if [ -n "$file_path" ]; then
+              echo "Copying $file_path from PR branch..."
+              # Extract file from PR branch and save to temp location
+              git show "$PR_HEAD_SHA:$file_path" > "/tmp/pr_files/$(basename "$file_path")" 2>/dev/null || echo "File $file_path not found in PR"
+            fi
+          done < /tmp/files_to_copy.txt
+          
+          echo "✅ PR files prepared for translation"
+
       - name: Execute safe synchronization
         if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.validate-target.outputs.should_process == 'true' && steps.check-approval.outputs.needs_approval != 'true'
         id: sync
@@ -252,7 +302,8 @@ jobs:
           WORK_DIR="${{ steps.extract-artifacts.outputs.work_dir }}"
           PR_NUMBER="${{ steps.extract-artifacts.outputs.pr_number }}"
           
-          # Create a new branch for the sync results
+          # Switch back to main and create a new branch for the sync results
+          git checkout main
           SYNC_BRANCH="docs-sync-pr-${PR_NUMBER}"
           git checkout -b "$SYNC_BRANCH"
           
@@ -315,15 +366,18 @@ jobs:
                   print(f"Processing: {file_path}")
                   
                   try:
-                      # Only translate if file exists and is safe
-                      if os.path.exists(file_path):
-                          print(f"✅ File exists: {file_path}")
+                      # Check if file exists in temp PR files or in current directory
+                      temp_file_path = f"/tmp/pr_files/{os.path.basename(file_path)}"
+                      source_file_path = file_path if os.path.exists(file_path) else temp_file_path if os.path.exists(temp_file_path) else None
+                      
+                      if source_file_path:
+                          print(f"✅ File found at: {source_file_path}")
                           for target_lang in ["zh-hans", "ja-jp"]:
                               target_path = file_path.replace("en/", f"{target_lang}/")
-                              print(f"Translating {file_path} -> {target_path} ({target_lang})")
+                              print(f"Translating {source_file_path} -> {target_path} ({target_lang})")
                               try:
                                   success = await synchronizer.translate_file_with_notice(
-                                      file_path,
+                                      source_file_path,
                                       target_path,
                                       target_lang
                                   )
@@ -337,7 +391,7 @@ jobs:
                                   print(f"❌ Translation error for {target_path}: {str(e)}")
                                   results["failed"].append(target_path)
                       else:
-                          print(f"❌ File not found: {file_path}")
+                          print(f"❌ File not found: {file_path} (checked both current dir and /tmp/pr_files)")
                           results["skipped"].append(file_path)
                   except Exception as e:
                       print(f"Error processing {file_path}: {e}")
