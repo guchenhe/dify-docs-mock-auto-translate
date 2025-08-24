@@ -280,7 +280,7 @@ jobs:
           " > /tmp/files_to_copy.txt
           
           # Copy each file from PR branch to temp location
-          cd /github/workspace
+          cd "$GITHUB_WORKSPACE"
           while IFS= read -r file_path; do
             if [ -n "$file_path" ]; then
               echo "Copying $file_path from PR branch..."
