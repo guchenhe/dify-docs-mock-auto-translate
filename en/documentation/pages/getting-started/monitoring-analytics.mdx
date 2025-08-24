@@ -1,0 +1,597 @@
+---
+title: "Monitoring & Analytics"
+description: "Monitor and analyze your Dify application performance"
+icon: "chart-line"
+---
+
+Effective monitoring and analytics are crucial for maintaining high-performing AI applications. This guide covers how to implement comprehensive monitoring for your Dify applications.
+
+## Overview
+
+Monitoring your Dify applications involves tracking:
+- **Performance Metrics**: Response times, throughput, error rates
+- **Usage Analytics**: User interactions, feature adoption, conversation patterns
+- **System Health**: Resource utilization, API limits, service availability
+- **Business Metrics**: User engagement, conversion rates, ROI
+
+## Performance Monitoring
+
+### Response Time Tracking
+
+Monitor API response times to ensure optimal user experience:
+
+```javascript
+const express = require('express');
+const app = express();
+
+// Response time middleware
+const responseTimeMiddleware = (req, res, next) => {
+  const startTime = Date.now();
+  
+  res.on('finish', () => {
+    const responseTime = Date.now() - startTime;
+    
+    // Log response time
+    console.log(`${req.method} ${req.path} - ${responseTime}ms`);
+    
+    // Send to monitoring service
+    sendMetric('response_time', responseTime, {
+      method: req.method,
+      path: req.path,
+      status: res.statusCode
+    });
+  });
+  
+  next();
+};
+
+app.use(responseTimeMiddleware);
+```
+
+### Error Rate Monitoring
+
+Track and alert on error rates:
+
+```javascript
+const errorRateTracker = {
+  requests: 0,
+  errors: 0,
+  
+  recordRequest() {
+    this.requests++;
+  },
+  
+  recordError() {
+    this.errors++;
+    
+    // Calculate error rate
+    const errorRate = (this.errors / this.requests) * 100;
+    
+    // Alert if error rate exceeds threshold
+    if (errorRate > 5) {
+      alerting.sendAlert('high_error_rate', {
+        rate: errorRate,
+        total_requests: this.requests,
+        total_errors: this.errors
+      });
+    }
+  },
+  
+  reset() {
+    this.requests = 0;
+    this.errors = 0;
+  }
+};
+
+// Middleware to track requests and errors
+app.use((req, res, next) => {
+  errorRateTracker.recordRequest();
+  
+  res.on('finish', () => {
+    if (res.statusCode >= 400) {
+      errorRateTracker.recordError();
+    }
+  });
+  
+  next();
+});
+```
+
+## Usage Analytics
+
+### Conversation Tracking
+
+Monitor user conversations and interactions:
+
+```javascript
+const conversationAnalytics = {
+  async trackConversation(conversationId, userId, messageData) {
+    const analytics = {
+      conversation_id: conversationId,
+      user_id: userId,
+      message_count: messageData.messageCount,
+      total_characters: messageData.totalCharacters,
+      response_time: messageData.responseTime,
+      satisfaction_rating: messageData.rating,
+      timestamp: new Date().toISOString(),
+      session_duration: messageData.sessionDuration
+    };
+    
+    // Store in analytics database
+    await analyticsDB.insert('conversation_events', analytics);
+    
+    // Update real-time metrics
+    this.updateRealTimeMetrics(analytics);
+  },
+  
+  updateRealTimeMetrics(data) {
+    // Update dashboard metrics
+    metrics.increment('conversations.total');
+    metrics.gauge('conversations.avg_response_time', data.response_time);
+    metrics.gauge('conversations.avg_session_duration', data.session_duration);
+  }
+};
+```
+
+### User Behavior Analysis
+
+Track user engagement patterns:
+
+```javascript
+const userBehaviorTracker = {
+  async trackUserAction(userId, action, context) {
+    const event = {
+      user_id: userId,
+      action: action,
+      context: context,
+      timestamp: new Date().toISOString(),
+      session_id: context.sessionId,
+      page: context.page,
+      user_agent: context.userAgent
+    };
+    
+    // Store event
+    await analyticsDB.insert('user_events', event);
+    
+    // Update user profile
+    await this.updateUserProfile(userId, action);
+  },
+  
+  async updateUserProfile(userId, action) {
+    const profile = await userDB.findById(userId);
+    
+    // Update usage statistics
+    profile.total_actions = (profile.total_actions || 0) + 1;
+    profile.last_active = new Date().toISOString();
+    profile.feature_usage = profile.feature_usage || {};
+    profile.feature_usage[action] = (profile.feature_usage[action] || 0) + 1;
+    
+    await userDB.update(userId, profile);
+  }
+};
+```
+
+## System Health Monitoring
+
+### Resource Utilization
+
+Monitor system resources:
+
+```javascript
+const os = require('os');
+
+const systemMonitor = {
+  collectMetrics() {
+    const metrics = {
+      cpu_usage: this.getCPUUsage(),
+      memory_usage: this.getMemoryUsage(),
+      disk_usage: this.getDiskUsage(),
+      active_connections: this.getActiveConnections(),
+      timestamp: new Date().toISOString()
+    };
+    
+    // Send to monitoring service
+    this.sendMetrics(metrics);
+    
+    // Check for alerts
+    this.checkAlerts(metrics);
+    
+    return metrics;
+  },
+  
+  getCPUUsage() {
+    const cpus = os.cpus();
+    let totalIdle = 0;
+    let totalTick = 0;
+    
+    cpus.forEach(cpu => {
+      for (type in cpu.times) {
+        totalTick += cpu.times[type];
+      }
+      totalIdle += cpu.times.idle;
+    });
+    
+    return 100 - ~~(100 * totalIdle / totalTick);
+  },
+  
+  getMemoryUsage() {
+    const totalMem = os.totalmem();
+    const freeMem = os.freemem();
+    return ((totalMem - freeMem) / totalMem) * 100;
+  },
+  
+  checkAlerts(metrics) {
+    if (metrics.cpu_usage > 80) {
+      alerting.sendAlert('high_cpu_usage', { usage: metrics.cpu_usage });
+    }
+    
+    if (metrics.memory_usage > 85) {
+      alerting.sendAlert('high_memory_usage', { usage: metrics.memory_usage });
+    }
+  }
+};
+
+// Collect metrics every 30 seconds
+setInterval(() => {
+  systemMonitor.collectMetrics();
+}, 30000);
+```
+
+### API Limit Monitoring
+
+Track API usage against limits:
+
+```javascript
+const apiLimitMonitor = {
+  limits: {
+    dify: { daily: 10000, hourly: 1000 },
+    openai: { daily: 50000, hourly: 5000 }
+  },
+  
+  usage: {
+    dify: { daily: 0, hourly: 0 },
+    openai: { daily: 0, hourly: 0 }
+  },
+  
+  trackAPICall(service, cost = 1) {
+    this.usage[service].daily += cost;
+    this.usage[service].hourly += cost;
+    
+    // Check limits
+    this.checkLimits(service);
+    
+    // Log usage
+    this.logUsage(service, cost);
+  },
+  
+  checkLimits(service) {
+    const usage = this.usage[service];
+    const limits = this.limits[service];
+    
+    const dailyPercentage = (usage.daily / limits.daily) * 100;
+    const hourlyPercentage = (usage.hourly / limits.hourly) * 100;
+    
+    if (dailyPercentage > 80) {
+      alerting.sendAlert('api_limit_warning', {
+        service: service,
+        type: 'daily',
+        usage: usage.daily,
+        limit: limits.daily,
+        percentage: dailyPercentage
+      });
+    }
+    
+    if (hourlyPercentage > 90) {
+      alerting.sendAlert('api_limit_critical', {
+        service: service,
+        type: 'hourly',
+        usage: usage.hourly,
+        limit: limits.hourly,
+        percentage: hourlyPercentage
+      });
+    }
+  },
+  
+  resetHourlyUsage() {
+    Object.keys(this.usage).forEach(service => {
+      this.usage[service].hourly = 0;
+    });
+  },
+  
+  resetDailyUsage() {
+    Object.keys(this.usage).forEach(service => {
+      this.usage[service].daily = 0;
+      this.usage[service].hourly = 0;
+    });
+  }
+};
+```
+
+## Analytics Dashboard
+
+### Real-time Metrics Display
+
+Create a dashboard for real-time monitoring:
+
+```javascript
+const dashboard = {
+  async getRealTimeMetrics() {
+    const [
+      systemMetrics,
+      conversationStats,
+      userStats,
+      errorRates
+    ] = await Promise.all([
+      this.getSystemMetrics(),
+      this.getConversationStats(),
+      this.getUserStats(),
+      this.getErrorRates()
+    ]);
+    
+    return {
+      system: systemMetrics,
+      conversations: conversationStats,
+      users: userStats,
+      errors: errorRates,
+      timestamp: new Date().toISOString()
+    };
+  },
+  
+  async getConversationStats() {
+    const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    
+    const stats = await analyticsDB.aggregate([
+      { $match: { timestamp: { $gte: last24Hours } } },
+      {
+        $group: {
+          _id: null,
+          totalConversations: { $sum: 1 },
+          avgResponseTime: { $avg: '$response_time' },
+          avgSessionDuration: { $avg: '$session_duration' },
+          totalMessages: { $sum: '$message_count' }
+        }
+      }
+    ]);
+    
+    return stats[0] || {};
+  },
+  
+  async getTopFeatures() {
+    const last7Days = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    
+    return await analyticsDB.aggregate([
+      { $match: { timestamp: { $gte: last7Days } } },
+      { $group: { _id: '$action', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]);
+  }
+};
+
+// API endpoint for dashboard data
+app.get('/api/dashboard/metrics', async (req, res) => {
+  try {
+    const metrics = await dashboard.getRealTimeMetrics();
+    res.json(metrics);
+  } catch (error) {
+    console.error('Dashboard metrics error:', error);
+    res.status(500).json({ error: 'Failed to fetch metrics' });
+  }
+});
+```
+
+## Alerting System
+
+### Alert Configuration
+
+Set up intelligent alerting:
+
+```javascript
+const alerting = {
+  channels: {
+    email: process.env.ALERT_EMAIL,
+    slack: process.env.SLACK_WEBHOOK,
+    sms: process.env.TWILIO_PHONE
+  },
+  
+  rules: {
+    high_error_rate: { threshold: 5, severity: 'critical' },
+    high_cpu_usage: { threshold: 80, severity: 'warning' },
+    high_memory_usage: { threshold: 85, severity: 'warning' },
+    api_limit_warning: { threshold: 80, severity: 'warning' },
+    api_limit_critical: { threshold: 90, severity: 'critical' }
+  },
+  
+  async sendAlert(type, data) {
+    const rule = this.rules[type];
+    if (!rule) return;
+    
+    const alert = {
+      type: type,
+      severity: rule.severity,
+      data: data,
+      timestamp: new Date().toISOString(),
+      message: this.generateAlertMessage(type, data)
+    };
+    
+    // Store alert history
+    await this.storeAlert(alert);
+    
+    // Send notifications based on severity
+    if (rule.severity === 'critical') {
+      await this.sendToAllChannels(alert);
+    } else {
+      await this.sendToEmail(alert);
+    }
+  },
+  
+  generateAlertMessage(type, data) {
+    const messages = {
+      high_error_rate: `🚨 High error rate detected: ${data.rate}% (${data.total_errors}/${data.total_requests})`,
+      high_cpu_usage: `⚠️ High CPU usage: ${data.usage}%`,
+      high_memory_usage: `⚠️ High memory usage: ${data.usage}%`,
+      api_limit_warning: `⚠️ API limit warning for ${data.service}: ${data.percentage}% of ${data.type} limit used`,
+      api_limit_critical: `🚨 API limit critical for ${data.service}: ${data.percentage}% of ${data.type} limit used`
+    };
+    
+    return messages[type] || `Alert: ${type}`;
+  },
+  
+  async sendToSlack(alert) {
+    const webhook = this.channels.slack;
+    if (!webhook) return;
+    
+    const payload = {
+      text: alert.message,
+      attachments: [{
+        color: alert.severity === 'critical' ? 'danger' : 'warning',
+        fields: [
+          { title: 'Type', value: alert.type, short: true },
+          { title: 'Severity', value: alert.severity, short: true },
+          { title: 'Time', value: alert.timestamp, short: true }
+        ]
+      }]
+    };
+    
+    await fetch(webhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  }
+};
+```
+
+## Business Intelligence
+
+### Conversion Tracking
+
+Track business metrics:
+
+```javascript
+const businessIntelligence = {
+  async trackConversion(userId, conversionType, value) {
+    const conversion = {
+      user_id: userId,
+      type: conversionType,
+      value: value,
+      timestamp: new Date().toISOString(),
+      attribution: await this.getAttribution(userId)
+    };
+    
+    await analyticsDB.insert('conversions', conversion);
+    
+    // Update user lifetime value
+    await this.updateUserLTV(userId, value);
+  },
+  
+  async getAttribution(userId) {
+    // Get user's first interaction source
+    const firstInteraction = await analyticsDB.findOne(
+      { user_id: userId },
+      { sort: { timestamp: 1 } }
+    );
+    
+    return {
+      source: firstInteraction?.source || 'direct',
+      campaign: firstInteraction?.campaign,
+      medium: firstInteraction?.medium
+    };
+  },
+  
+  async generateBusinessReport() {
+    const last30Days = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    
+    const [
+      totalUsers,
+      activeUsers,
+      conversions,
+      revenue,
+      retention
+    ] = await Promise.all([
+      this.getTotalUsers(last30Days),
+      this.getActiveUsers(last30Days),
+      this.getConversions(last30Days),
+      this.getRevenue(last30Days),
+      this.getRetention(last30Days)
+    ]);
+    
+    return {
+      totalUsers,
+      activeUsers,
+      conversions,
+      revenue,
+      retention,
+      conversionRate: conversions / totalUsers,
+      averageRevenue: revenue / conversions,
+      generatedAt: new Date().toISOString()
+    };
+  }
+};
+```
+
+## Monitoring Setup Checklist
+
+### Infrastructure Monitoring
+- [ ] Server resource monitoring (CPU, memory, disk)
+- [ ] Application performance monitoring (APM)
+- [ ] Database performance monitoring
+- [ ] Network latency monitoring
+- [ ] Load balancer health checks
+
+### Application Monitoring
+- [ ] API response time tracking
+- [ ] Error rate monitoring
+- [ ] User session tracking
+- [ ] Feature usage analytics
+- [ ] Conversion funnel analysis
+
+### Security Monitoring
+- [ ] Failed authentication attempts
+- [ ] Unusual traffic patterns
+- [ ] API rate limit breaches
+- [ ] Suspicious user behavior
+- [ ] Data access auditing
+
+### Business Monitoring
+- [ ] User acquisition metrics
+- [ ] Customer lifetime value
+- [ ] Retention rates
+- [ ] Revenue tracking
+- [ ] Support ticket volume
+
+## Best Practices
+
+### Data Collection
+- **Minimize PII**: Avoid collecting personally identifiable information
+- **Aggregate data**: Use aggregated metrics where possible
+- **Retention policies**: Implement data retention and cleanup policies
+- **Performance impact**: Ensure monitoring doesn't impact application performance
+
+### Alerting
+- **Meaningful alerts**: Only alert on actionable issues
+- **Alert fatigue**: Avoid too many alerts that desensitize the team
+- **Escalation paths**: Define clear escalation procedures
+- **Documentation**: Document alert responses and runbooks
+
+### Visualization
+- **Clear dashboards**: Create intuitive, focused dashboards
+- **Real-time updates**: Ensure dashboards show current data
+- **Mobile friendly**: Make dashboards accessible on mobile devices
+- **Role-based access**: Provide different views for different roles
+
+## Conclusion
+
+Effective monitoring and analytics provide the insights needed to optimize your Dify applications, improve user experience, and drive business success. Implement monitoring incrementally, starting with the most critical metrics and expanding coverage over time.
+
+Remember to balance data collection with privacy requirements and ensure your monitoring infrastructure is as reliable as the applications it monitors.
+
+{/*
+Contributing Section
+DO NOT edit this section!
+It will be automatically generated by the script.
+*/}
+
+---
+
+[Edit this page](https://github.com/langgenius/dify-docs/edit/main/en/documentation/pages/getting-started/monitoring-analytics.mdx) | [Report an issue](https://github.com/langgenius/dify-docs/issues/new?template=docs.yml)
