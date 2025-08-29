@@ -7,7 +7,7 @@
         "light": "#688FE8",
         "dark": "#0034FF"
     },
-    "description": "Dify is an open-source platform for building AI applications. It provides a comprehensive set of tools and features to help you build, deploy, and manage your AI applications.",
+    "description": "Dify is a powerful open-source platform for building advanced AI applications. It provides a comprehensive set of tools and features to help you build, deploy, and manage your sophisticated AI applications.",
     "favicon": "/logo/dify-logo.png",
     "logo": {
         "light": "https://assets-docs.dify.ai/2025/05/d05cfc6ebe48f725d171dc71c64a5d16.svg",
@@ -29,7 +29,7 @@
                                         "group": "Getting Started",
                                         "pages": [
                                             "en/documentation/pages/getting-started/introduction",
-                                            "en/documentation/pages/getting-started/quick-start",
+                                            "en/documentation/pages/getting-started/quick-start", 
                                             "en/documentation/pages/getting-started/key-concepts"
                                         ]
                                     },
