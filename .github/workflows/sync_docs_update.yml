@@ -399,3 +399,49 @@ The translation PR [#${translationPrNumber}](https://github.com/${{ github.repos
             } catch (error) {
               console.log('Could not comment on original PR:', error.message);
             }
+
+      - name: Report workflow failure
+        if: failure()
+        uses: actions/github-script@v7
+        continue-on-error: true
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = ${{ github.event.pull_request.number }};
+            const workflowUrl = `${context.payload.repository.html_url}/actions/runs/${context.runId}`;
+            
+            let errorMessage = '## ❌ Translation Update Failed\n\n';
+            errorMessage += 'The automatic translation update workflow encountered an error.\n\n';
+            
+            // Check which step failed
+            const validationFailed = '${{ steps.validate-tools.outputs.validation_failed }}' === 'true';
+            const shouldUpdate = '${{ steps.check-pr-type.outputs.should_update }}' === 'true';
+            const foundTranslationPr = '${{ steps.find-translation-pr.outputs.found_translation_pr }}' === 'true';
+            
+            if (validationFailed) {
+              errorMessage += '**Issue**: Translation tools validation failed\n';
+              errorMessage += '**Action needed**: Check that all required translation scripts are present\n\n';
+            } else if (!shouldUpdate) {
+              errorMessage += '**Issue**: PR type check failed or not an English-only PR\n';
+              errorMessage += '**Action needed**: Ensure this PR only contains English documentation changes\n\n';
+            } else if (!foundTranslationPr) {
+              errorMessage += '**Issue**: No associated translation PR found\n';
+              errorMessage += '**Action needed**: This may be normal for the first update to a PR\n\n';
+            } else {
+              errorMessage += '**Issue**: Translation update process failed\n';
+              errorMessage += '**Action needed**: Check the workflow logs for specific errors\n\n';
+            }
+            
+            errorMessage += `**Workflow run**: [View details](${workflowUrl})\n\n`;
+            errorMessage += '🤖 _This is an automated error report from the translation update workflow._';
+            
+            try {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: errorMessage
+              });
+            } catch (error) {
+              console.log('Could not post error comment:', error.message);
+            }
