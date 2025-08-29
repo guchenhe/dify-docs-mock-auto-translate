@@ -639,7 +639,7 @@ jobs:
               '',
               '---',
               `🤖 _This PR is part of the automated translation workflow. Any updates to PR #${prNumber} will automatically update this translation PR._`
-            ].join('\\n');
+            ].join('\n\n');
 
             try {
               await github.rest.issues.createComment({

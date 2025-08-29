@@ -270,13 +270,16 @@ jobs:
               console.log('Could not load update results');
             }
             
-            let comment = `## 🔄 Translation PR Updated
+            let comment = `## 🔄 Translation PR Updated\n\n`
+            comment += `Your English documentation changes have been automatically translated and the translation PR has been updated.\n\n`
+                        
+            comment += `### 📝 Original Changes\n\n`;
+            comment += `- **Original PR**: #${prNumber}\n`;
+            comment += `- **Type**: English documentation updates\n`;
             
-Your English documentation changes have been automatically translated and the translation PR has been updated.
-
-### 🔗 Updated Translation PR: [#${translationPrNumber}](${translationPrUrl})
-
-`;
+            comment += `### 🔄 Synchronization\n\n`;
+            comment += `- **Automatic Updates**: This PR will be automatically updated if the original PR changes\n`;
+            comment += `- **Independent Review**: This translation PR can be reviewed and merged independently\n`;
             
             if (results.translated && results.translated.length > 0) {
               comment += `### ✅ Updated Translations (${results.translated.length} files):\n`;
