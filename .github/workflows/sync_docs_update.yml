@@ -30,7 +30,41 @@ jobs:
         with:
           python-version: '3.9'
 
+      - name: Validate translation tools
+        id: validate-tools
+        run: |
+          echo "Validating translation tools and dependencies..."
+          
+          # Check if translation tools exist
+          if [ ! -d "tools/translate" ]; then
+            echo "❌ Error: tools/translate directory not found"
+            echo "validation_failed=true" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          if [ ! -f "tools/translate/pr_analyzer.py" ]; then
+            echo "❌ Error: pr_analyzer.py not found"
+            echo "validation_failed=true" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          if [ ! -f "tools/translate/sync_and_translate.py" ]; then
+            echo "❌ Error: sync_and_translate.py not found"
+            echo "validation_failed=true" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          if [ ! -f "tools/translate/update_translations.py" ]; then
+            echo "❌ Error: update_translations.py not found"
+            echo "validation_failed=true" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          echo "✅ All required translation tools found"
+          echo "validation_failed=false" >> $GITHUB_OUTPUT
+
       - name: Check if PR is English-only
+        if: steps.validate-tools.outputs.validation_failed != 'true'
         id: check-pr-type
         run: |
           echo "Checking if this PR contains only English changes..."
@@ -62,8 +96,10 @@ jobs:
           fi
 
       - name: Find associated translation PR
-        if: steps.check-pr-type.outputs.should_update == 'true'
+        if: steps.check-pr-type.outputs.should_update == 'true' && steps.validate-tools.outputs.validation_failed != 'true'
         id: find-translation-pr
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
           echo "Looking for translation PR associated with PR #${PR_NUMBER}..."
@@ -96,8 +132,17 @@ jobs:
       - name: Install dependencies
         if: steps.find-translation-pr.outputs.found_translation_pr == 'true'
         run: |
+          echo "Installing Python dependencies..."
           cd tools/translate
-          pip install httpx aiofiles python-dotenv
+          
+          # Install from requirements.txt if it exists, otherwise install individually
+          if [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+          else
+            pip install httpx aiofiles python-dotenv
+          fi
+          
+          echo "✅ Dependencies installed successfully"
 
       - name: Update translations
         if: steps.find-translation-pr.outputs.found_translation_pr == 'true'
@@ -107,118 +152,58 @@ jobs:
         run: |
           echo "Updating translations for PR #${{ github.event.pull_request.number }}..."
           
+          # Validate environment
+          if [ -z "$DIFY_API_KEY" ]; then
+            echo "❌ Error: DIFY_API_KEY not set in secrets"
+            echo "update_successful=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
           PR_NUMBER=${{ github.event.pull_request.number }}
           SYNC_BRANCH="docs-sync-pr-${PR_NUMBER}"
           BASE_SHA="${{ github.event.pull_request.base.sha }}"
           HEAD_SHA="${{ github.event.pull_request.head.sha }}"
           
-          # Switch to translation branch
-          git fetch origin "$SYNC_BRANCH:$SYNC_BRANCH" || {
+          echo "PR: #${PR_NUMBER}, Branch: ${SYNC_BRANCH}"
+          echo "Commits: ${BASE_SHA} -> ${HEAD_SHA}"
+          
+          # Switch to translation branch with better error handling
+          echo "Fetching translation branch..."
+          if ! git fetch origin "$SYNC_BRANCH:$SYNC_BRANCH"; then
             echo "❌ Could not fetch translation branch $SYNC_BRANCH"
+            echo "❌ This might be the first update - translation PR may not exist yet"
             echo "update_successful=false" >> $GITHUB_OUTPUT
             exit 0
-          }
+          fi
           
+          echo "Switching to translation branch..."
           git checkout "$SYNC_BRANCH"
           
           # Reset translation branch to latest main to get fresh translations
+          echo "Resetting translation branch to latest main..."
+          git fetch origin main
           git reset --hard origin/main
           
-          # Re-run translation analysis and generation
+          # Run the translation update using the extracted script
           cd tools/translate
+          echo "Running translation update script..."
           
-          # Create updated sync script
-          cat > update_translations.py <<'EOF'
-          import json
-          import sys
-          import os
-          import asyncio
-          from pathlib import Path
+          # Make script executable
+          chmod +x update_translations.py
           
-          # Add parent directory to path
-          sys.path.append(os.path.dirname(__file__))
-          from sync_and_translate import DocsSynchronizer
-          from pr_analyzer import PRAnalyzer
-          
-          async def update_translations():
-              base_sha = sys.argv[1]
-              head_sha = sys.argv[2]
-              
-              # Analyze changes
-              analyzer = PRAnalyzer(base_sha, head_sha)
-              result = analyzer.categorize_pr()
-              
-              if result['type'] != 'english':
-                  print(f"PR type is {result['type']}, not english - skipping")
-                  return False
-              
-              # Initialize synchronizer
-              api_key = os.environ.get("DIFY_API_KEY")
-              if not api_key:
-                  print("Error: DIFY_API_KEY not set")
-                  return False
-              
-              synchronizer = DocsSynchronizer(api_key)
-              
-              # Get English files that need translation
-              file_categories = result['files']
-              english_files = file_categories['english']
-              
-              results = {
-                  "translated": [],
-                  "failed": [],
-                  "skipped": [],
-                  "updated": True
-              }
-              
-              # Translate English files
-              for file_path in english_files[:10]:  # Limit to 10 files for safety
-                  print(f"Updating translations for: {file_path}")
-                  
-                  try:
-                      for target_lang in ["zh-hans", "ja-jp"]:
-                          target_path = file_path.replace("en/", f"{target_lang}/")
-                          success = await synchronizer.translate_file_with_notice(
-                              file_path,
-                              target_path,
-                              target_lang
-                          )
-                          if success:
-                              results["translated"].append(target_path)
-                          else:
-                              results["failed"].append(target_path)
-                  except Exception as e:
-                      print(f"Error processing {file_path}: {e}")
-                      results["failed"].append(file_path)
-              
-              # Handle docs.json structure sync if needed
-              docs_changes = result['docs_json_changes']
-              if docs_changes['any_docs_json_changes']:
-                  print("Updating docs.json structure...")
-                  try:
-                      sync_log = synchronizer.sync_docs_json_structure()
-                      print("\n".join(sync_log))
-                  except Exception as e:
-                      print(f"Error syncing docs.json structure: {e}")
-              
-              # Save results
-              with open("/tmp/update_results.json", "w") as f:
-                  json.dump(results, f, indent=2)
-              
-              return len(results["failed"]) == 0
-          
-          if __name__ == "__main__":
-              success = asyncio.run(update_translations())
-              sys.exit(0 if success else 1)
-          EOF
-          
-          # Run the update
-          python update_translations.py "$BASE_SHA" "$HEAD_SHA"
-          UPDATE_EXIT_CODE=$?
+          # Run the update with proper error handling
+          if python update_translations.py "$BASE_SHA" "$HEAD_SHA"; then
+            UPDATE_EXIT_CODE=0
+            echo "✅ Translation update completed successfully"
+          else
+            UPDATE_EXIT_CODE=1
+            echo "❌ Translation update failed"
+          fi
           
           echo "update_exit_code=$UPDATE_EXIT_CODE" >> $GITHUB_OUTPUT
           
           # Check for changes
+          cd "$GITHUB_WORKSPACE"
           if [[ -n $(git status --porcelain) ]]; then
             echo "has_changes=true" >> $GITHUB_OUTPUT
             echo "✅ Translation updates detected"
@@ -256,6 +241,7 @@ jobs:
         uses: actions/github-script@v7
         continue-on-error: true
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
             const prNumber = ${{ github.event.pull_request.number }};
@@ -321,6 +307,7 @@ Your English documentation changes have been automatically translated and the tr
         uses: actions/github-script@v7
         continue-on-error: true
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
             const prNumber = ${{ github.event.pull_request.number }};
@@ -377,6 +364,7 @@ ${results.failed && results.failed.length > 0 ?
         uses: actions/github-script@v7
         continue-on-error: true
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const prNumber = ${{ github.event.pull_request.number }};
             const translationPrNumber = '${{ steps.find-translation-pr.outputs.translation_pr_number }}';
