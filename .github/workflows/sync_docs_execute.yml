@@ -5,6 +5,7 @@ on:
     workflows: ["Analyze Documentation Changes"]
     types:
       - completed
+    branches: [main, revamp]
   workflow_dispatch:
     inputs:
       pr_number:
@@ -138,53 +139,27 @@ jobs:
           SYNC_REQUIRED=$(python3 -c "import json; print(str(json.load(open('sync_plan.json'))['sync_required']).lower())")
           echo "sync_required=$SYNC_REQUIRED" >> $GITHUB_OUTPUT
 
-      - name: Validate PR target branch
-        if: steps.extract-artifacts.outputs.sync_required == 'true'
-        id: validate-target
-        run: |
-          PR_NUMBER="${{ steps.extract-artifacts.outputs.pr_number }}"
-          echo "Checking PR #$PR_NUMBER target branch..."
-          
-          # Get PR details
-          PR_DATA=$(curl -s \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER")
-          
-          BASE_BRANCH=$(echo "$PR_DATA" | jq -r '.base.ref')
-          echo "PR target branch: $BASE_BRANCH"
-          
-          # Check if targeting main or revamp branches
-          if [[ "$BASE_BRANCH" == "main" ]] || [[ "$BASE_BRANCH" == "revamp" ]]; then
-            echo "✅ PR targets allowed branch: $BASE_BRANCH"
-            echo "should_process=true" >> $GITHUB_OUTPUT
-          else
-            echo "⚠️  PR targets non-automated branch: $BASE_BRANCH"
-            echo "Only PRs targeting 'main' or 'revamp' branches trigger auto-translation"
-            echo "should_process=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Checkout base repository
-        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.validate-target.outputs.should_process == 'true'
+        if: steps.extract-artifacts.outputs.sync_required == 'true'
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
       - name: Set up Python
-        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.validate-target.outputs.should_process == 'true'
+        if: steps.extract-artifacts.outputs.sync_required == 'true'
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
       - name: Install dependencies
-        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.validate-target.outputs.should_process == 'true'
+        if: steps.extract-artifacts.outputs.sync_required == 'true'
         run: |
           cd tools/translate
           pip install httpx aiofiles python-dotenv
 
       - name: Check for manual approval requirement
-        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.validate-target.outputs.should_process == 'true' && steps.check-source.outputs.is_fork == 'true'
+        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.check-source.outputs.is_fork == 'true'
         id: check-approval
         uses: actions/github-script@v7
         with:
@@ -241,67 +216,8 @@ jobs:
             
             core.setOutput('needs_approval', 'false');
 
-      - name: Prepare PR files for translation
-        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.validate-target.outputs.should_process == 'true' && steps.check-approval.outputs.needs_approval != 'true'
-        id: prepare-pr-files
-        run: |
-          PR_NUMBER="${{ steps.extract-artifacts.outputs.pr_number }}"
-          WORK_DIR="${{ steps.extract-artifacts.outputs.work_dir }}"
-          
-          echo "Preparing PR #$PR_NUMBER files for translation..."
-          
-          # Get PR branch info
-          PR_DATA=$(curl -s \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER")
-          
-          PR_HEAD_BRANCH=$(echo "$PR_DATA" | jq -r '.head.ref')
-          PR_HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
-          
-          echo "PR branch: $PR_HEAD_BRANCH"
-          echo "PR SHA: $PR_HEAD_SHA"
-          
-          # Fetch the PR branch 
-          git fetch origin "$PR_HEAD_BRANCH"
-          
-          # Create a temporary directory for PR files
-          mkdir -p /tmp/pr_files
-          
-          # Get list of files to process from sync plan
-          cd "$WORK_DIR"
-          python3 -c "
-          import json
-          with open('sync_plan.json') as f:
-              sync_plan = json.load(f)
-          files_to_sync = sync_plan.get('files_to_sync', [])
-          for file_info in files_to_sync:
-              print(file_info['path'])
-          " > /tmp/files_to_copy.txt
-          
-          # Copy each file from PR branch to temp location
-          cd "$GITHUB_WORKSPACE"
-          while IFS= read -r file_path; do
-            if [ -n "$file_path" ]; then
-              echo "Copying $file_path from PR branch..."
-              # Extract file from PR branch and save to temp location
-              git show "$PR_HEAD_SHA:$file_path" > "/tmp/pr_files/$(basename "$file_path")" 2>/dev/null || echo "File $file_path not found in PR"
-            fi
-          done < /tmp/files_to_copy.txt
-          
-          # Also check if docs.json was updated in the PR and copy it
-          if git show "$PR_HEAD_SHA:docs.json" > /tmp/pr_docs.json 2>/dev/null; then
-            echo "Copying updated docs.json from PR branch..."
-            cp /tmp/pr_docs.json docs.json
-            echo "✅ Updated docs.json from PR applied"
-          else
-            echo "No docs.json changes in PR"
-          fi
-          
-          echo "✅ PR files prepared for translation"
-
       - name: Execute safe synchronization
-        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.validate-target.outputs.should_process == 'true' && steps.check-approval.outputs.needs_approval != 'true'
+        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.check-approval.outputs.needs_approval != 'true'
         id: sync
         env:
           DIFY_API_KEY: ${{ secrets.DIFY_API_KEY }}
@@ -311,25 +227,23 @@ jobs:
           WORK_DIR="${{ steps.extract-artifacts.outputs.work_dir }}"
           PR_NUMBER="${{ steps.extract-artifacts.outputs.pr_number }}"
           
-          # Switch back to main and create a new branch for the sync results
-          git checkout main
+          # Create a new branch for the sync results
           SYNC_BRANCH="docs-sync-pr-${PR_NUMBER}"
           git checkout -b "$SYNC_BRANCH"
           
           # Run synchronization with security constraints
           cd tools/translate
           
-          # Create a secure sync script in tmp
-          cat > /tmp/secure_sync.py <<'EOF'
+          # Create a secure sync script
+          cat > secure_sync.py <<'EOF'
           import json
           import sys
           import os
           import asyncio
           from pathlib import Path
           
-          # Add tools/translate directory to path (use GITHUB_WORKSPACE)
-          workspace = os.environ.get('GITHUB_WORKSPACE', '.')
-          sys.path.append(os.path.join(workspace, 'tools', 'translate'))
+          # Add parent directory to path
+          sys.path.append(os.path.dirname(__file__))
           from sync_and_translate import DocsSynchronizer
           
           async def secure_sync():
@@ -373,34 +287,27 @@ jobs:
               for file_info in files_to_sync[:10]:  # Limit to 10 files
                   file_path = file_info["path"]
                   print(f"Processing: {file_path}")
-                  
+
+                  # Skip versioned directories (frozen/archived docs)
+                  if file_path.startswith("versions/"):
+                      results["skipped"].append(f"{file_path} (versioned - not auto-translated)")
+                      continue
+
                   try:
-                      # Check if file exists in temp PR files or in current directory
-                      temp_file_path = f"/tmp/pr_files/{os.path.basename(file_path)}"
-                      source_file_path = file_path if os.path.exists(file_path) else temp_file_path if os.path.exists(temp_file_path) else None
-                      
-                      if source_file_path:
-                          print(f"✅ File found at: {source_file_path}")
-                          for target_lang in ["zh-hans", "ja-jp"]:
+                      # Only translate if file exists and is safe
+                      if os.path.exists(f"../../{file_path}"):
+                          for target_lang in ["cn", "jp"]:
                               target_path = file_path.replace("en/", f"{target_lang}/")
-                              print(f"Translating {source_file_path} -> {target_path} ({target_lang})")
-                              try:
-                                  success = await synchronizer.translate_file_with_notice(
-                                      source_file_path,
-                                      target_path,
-                                      target_lang
-                                  )
-                                  if success:
-                                      print(f"✅ Successfully translated: {target_path}")
-                                      results["translated"].append(target_path)
-                                  else:
-                                      print(f"❌ Failed to translate: {target_path}")
-                                      results["failed"].append(target_path)
-                              except Exception as e:
-                                  print(f"❌ Translation error for {target_path}: {str(e)}")
+                              success = await synchronizer.translate_file_with_notice(
+                                  file_path,
+                                  target_path,
+                                  target_lang
+                              )
+                              if success:
+                                  results["translated"].append(target_path)
+                              else:
                                   results["failed"].append(target_path)
                       else:
-                          print(f"❌ File not found: {file_path} (checked both current dir and /tmp/pr_files)")
                           results["skipped"].append(file_path)
                   except Exception as e:
                       print(f"Error processing {file_path}: {e}")
@@ -427,7 +334,7 @@ jobs:
           EOF
           
           # Run the secure sync
-          python /tmp/secure_sync.py "$WORK_DIR"
+          python secure_sync.py "$WORK_DIR"
           SYNC_EXIT_CODE=$?
           
           echo "sync_exit_code=$SYNC_EXIT_CODE" >> $GITHUB_OUTPUT
@@ -442,8 +349,6 @@ jobs:
       - name: Commit and create translation PR
         if: steps.sync.outputs.has_changes == 'true'
         id: create-translation-pr
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           PR_NUMBER="${{ steps.extract-artifacts.outputs.pr_number }}"
           SYNC_BRANCH="docs-sync-pr-${PR_NUMBER}"
@@ -458,7 +363,7 @@ jobs:
           Auto-generated translations for documentation changes in PR #${PR_NUMBER}.
           
           Original PR: #${PR_NUMBER}
-          Languages: Chinese (zh-hans), Japanese (ja-jp)
+          Languages: Chinese (cn), Japanese (jp)
           
           🤖 Generated with GitHub Actions"
           
@@ -479,8 +384,8 @@ jobs:
           **Link:** #${PR_NUMBER}
           
           ## What's included
-          - 🇨🇳 Chinese (zh-hans) translations
-          - 🇯🇵 Japanese (ja-jp) translations
+          - 🇨🇳 Chinese (cn) translations
+          - 🇯🇵 Japanese (jp) translations
           - 📋 Updated navigation structure in docs.json
           
           ## Review Process
@@ -497,22 +402,15 @@ jobs:
           EOF
           
           # Create the translation PR
-          echo "Creating translation PR..."
-          set +e  # Don't exit on error so we can capture it
           TRANSLATION_PR_URL=$(gh pr create \
             --base main \
             --head "$SYNC_BRANCH" \
             --title "🌐 Auto-translations for PR #${PR_NUMBER}: ${ORIGINAL_PR_TITLE}" \
             --body-file /tmp/translation_pr_body.md \
-            --label "translation" \
-            --label "automated" 2>&1)
-          CREATE_EXIT_CODE=$?
-          set -e  # Re-enable exit on error
+            --label "🌐 translation" \
+            --label "🤖 automated" 2>/dev/null || echo "")
           
-          echo "PR creation command exit code: $CREATE_EXIT_CODE"
-          echo "PR creation output: $TRANSLATION_PR_URL"
-          
-          if [ $CREATE_EXIT_CODE -eq 0 ] && [[ "$TRANSLATION_PR_URL" == *"github.com"* ]]; then
+          if [ -n "$TRANSLATION_PR_URL" ]; then
             # Extract PR number from URL
             TRANSLATION_PR_NUMBER=$(echo "$TRANSLATION_PR_URL" | grep -o '[0-9]\+$')
             echo "translation_pr_number=$TRANSLATION_PR_NUMBER" >> $GITHUB_OUTPUT
@@ -523,13 +421,11 @@ jobs:
             echo "✅ Translation PR created successfully: #${TRANSLATION_PR_NUMBER}"
           else
             echo "❌ Failed to create translation PR"
-            echo "Exit code: $CREATE_EXIT_CODE"
-            echo "Output: $TRANSLATION_PR_URL"
             echo "creation_successful=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Comment on original PR with translation PR link
-        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.validate-target.outputs.should_process == 'true' && steps.check-approval.outputs.needs_approval != 'true'
+        if: steps.extract-artifacts.outputs.sync_required == 'true' && steps.check-approval.outputs.needs_approval != 'true'
         uses: actions/github-script@v7
         with:
           script: |
@@ -584,8 +480,8 @@ jobs:
               comment += '3. **Automatic**: Future updates to this PR will automatically update the translation PR\n\n';
               
               comment += '### 📋 Languages Included:\n';
-              comment += '- 🇨🇳 **Chinese (zh-hans)**: Simplified Chinese translations\n';
-              comment += '- 🇯🇵 **Japanese (ja-jp)**: Japanese translations\n';
+              comment += '- 🇨🇳 **Chinese (cn)**: Simplified Chinese translations\n';
+              comment += '- 🇯🇵 **Japanese (jp)**: Japanese translations\n';
               comment += '- 📋 **Navigation**: Updated docs.json structure for both languages\n\n';
               
               comment += '---\n';

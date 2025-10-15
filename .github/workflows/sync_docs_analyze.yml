@@ -7,10 +7,12 @@ on:
       - 'docs.json'
       - 'en/**/*.md'
       - 'en/**/*.mdx'
-      - 'ja-jp/**/*.md'
-      - 'ja-jp/**/*.mdx'
-      - 'zh-hans/**/*.md'
-      - 'zh-hans/**/*.mdx'
+      - 'cn/**/*.md'
+      - 'cn/**/*.mdx'
+      - 'jp/**/*.md'
+      - 'jp/**/*.mdx'
+      - 'versions/**/*.md'
+      - 'versions/**/*.mdx'
 
 permissions:
   contents: read
@@ -225,9 +227,18 @@ jobs:
                           "type": "mdx" if file_path.endswith(".mdx") else "md"
                       })
           
-          # Note: docs.json is handled separately via structure_changes
-          # It should not be added to files_to_sync as it's not translated,
-          # only its structure is mirrored to other language sections
+          # Add docs.json if it changed
+          with open("/tmp/docs_json_changed.txt") as f:
+              docs_json_changed = f.read().strip() == "true"
+          
+          if docs_json_changed:
+              # Get docs.json size (from repo root)
+              docs_json_size = os.path.getsize("docs.json")
+              files_to_sync.append({
+                  "path": "docs.json",
+                  "size": docs_json_size,
+                  "type": "json"
+              })
           
           # Load structure changes
           with open("/tmp/structure_changes.json") as f:
