@@ -156,7 +156,7 @@ jobs:
           structure_changes = {
               "structure_changed": docs_changes["any_docs_json_changes"],
               "navigation_modified": docs_changes["english_section"],
-              "languages_affected": ["zh-hans", "ja-jp"] if docs_changes["english_section"] else []
+              "languages_affected": ["cn", "jp"] if docs_changes["english_section"] else []
           }
           
           import json
@@ -249,7 +249,7 @@ jobs:
               "metadata": analysis,
               "files_to_sync": files_to_sync,
               "structure_changes": structure_changes,
-              "target_languages": ["zh-hans", "ja-jp"],
+              "target_languages": ["cn", "jp"],
               "sync_required": len(files_to_sync) > 0 or structure_changes.get("structure_changed", False)
           }
           

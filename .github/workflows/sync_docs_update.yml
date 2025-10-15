@@ -174,9 +174,9 @@ jobs:
               # Translate English files
               for file_path in english_files[:10]:  # Limit to 10 files for safety
                   print(f"Updating translations for: {file_path}")
-                  
+
                   try:
-                      for target_lang in ["zh-hans", "ja-jp"]:
+                      for target_lang in ["cn", "jp"]:
                           target_path = file_path.replace("en/", f"{target_lang}/")
                           success = await synchronizer.translate_file_with_notice(
                               file_path,
@@ -298,8 +298,8 @@ Your English documentation changes have been automatically translated and the tr
             }
             
             comment += `### 🔄 What's Updated:
-- **Translation Files**: All corresponding zh-hans and ja-jp files
-- **Navigation Structure**: Updated docs.json if needed  
+- **Translation Files**: All corresponding cn and jp files
+- **Navigation Structure**: Updated docs.json if needed
 - **Automatic**: This update happened automatically when you updated your PR
 
 ---
@@ -341,7 +341,7 @@ This translation PR has been automatically updated following changes in the orig
 ### 📝 What Was Updated:
 - **Source**: Changes from PR #${prNumber}
 - **Updated Files**: ${results.translated ? results.translated.length : 0} translation files
-- **Languages**: Chinese (zh-hans) and Japanese (ja-jp)
+- **Languages**: Chinese (cn) and Japanese (jp)
 
 ### ✅ Translation Status:
 ${results.translated && results.translated.length > 0 ? 
