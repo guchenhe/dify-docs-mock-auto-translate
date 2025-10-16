@@ -51,15 +51,21 @@ class PRAnalyzer:
         """Extract navigation structure for a specific language from docs.json."""
         if not docs_data or 'navigation' not in docs_data:
             return None
-        
+
         navigation = docs_data['navigation']
-        if 'languages' not in navigation:
+
+        # Handle both direct languages and versions structure
+        if 'languages' in navigation:
+            languages = navigation['languages']
+        elif 'versions' in navigation and len(navigation['versions']) > 0:
+            languages = navigation['versions'][0].get('languages', [])
+        else:
             return None
-        
-        for lang_data in navigation['languages']:
+
+        for lang_data in languages:
             if lang_data.get('language') == language:
                 return lang_data
-        
+
         return None
     
     def analyze_docs_json_changes(self) -> Dict[str, bool]:
