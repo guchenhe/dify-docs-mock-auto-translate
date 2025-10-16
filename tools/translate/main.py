@@ -7,8 +7,8 @@ import aiofiles
 docs_structure = {
     "general_help": {
         "English": "en",
-        "Chinese": "zh-hans",
-        "Japanese": "ja-jp"
+        "Chinese": "cn",
+        "Japanese": "jp"
     },
     "plugin_dev": {
         "English": "plugin-dev-en",
@@ -18,17 +18,17 @@ docs_structure = {
     "version_28x": {
         "English": "versions/2-8-x/en-us",
         "Chinese": "versions/2-8-x/zh-cn",
-        "Japanese": "versions/2-8-x/ja-jp"
+        "Japanese": "versions/2-8-x/jp"
     },
     "version_30x": {
         "English": "versions/3-0-x/en-us",
         "Chinese": "versions/3-0-x/zh-cn",
-        "Japanese": "versions/3-0-x/ja-jp"
+        "Japanese": "versions/3-0-x/jp"
     },
     "version_31x": {
         "English": "versions/3-1-x/en-us",
         "Chinese": "versions/3-1-x/zh-cn",
-        "Japanese": "versions/3-1-x/ja-jp"
+        "Japanese": "versions/3-1-x/jp"
     }
 }
 
