@@ -1,0 +1,169 @@
+---
+title: "Integration Guide"
+description: "Learn how to integrate Dify with external systems and services"
+icon: "plug"
+---
+
+# Integrating Dify with External Systems
+
+This guide covers various integration patterns and best practices for connecting Dify applications with external systems and services.
+
+## API Integrations
+
+### REST API Integration
+Connect Dify with external REST APIs:
+- Configure API endpoints and authentication
+- Handle request/response formatting
+- Implement error handling and retries
+- Manage rate limiting and quotas
+
+### Webhook Integration
+Set up webhook endpoints for real-time updates:
+- Configure webhook URLs and security
+- Process incoming webhook payloads
+- Validate webhook signatures
+- Handle webhook failures and retries
+
+### GraphQL Integration
+Connect with GraphQL services:
+- Configure GraphQL endpoints and schemas
+- Write efficient queries and mutations
+- Handle pagination and caching
+- Implement error handling
+
+## Database Integrations
+
+### SQL Databases
+Connect to SQL databases:
+- PostgreSQL, MySQL, SQL Server
+- Configure connection strings
+- Execute queries safely
+- Handle transactions
+
+### NoSQL Databases
+Integrate with NoSQL databases:
+- MongoDB, Redis, Cassandra
+- Configure connections
+- Perform CRUD operations
+- Handle data consistency
+
+## Third-Party Services
+
+### CRM Integration
+Connect with CRM platforms:
+- Salesforce, HubSpot, Dynamics
+- Sync customer data
+- Update records automatically
+- Track interactions
+
+### Cloud Storage
+Integrate with cloud storage:
+- AWS S3, Google Cloud Storage, Azure Blob
+- Upload and download files
+- Manage access permissions
+- Handle large files
+
+### Communication Services
+Connect with communication platforms:
+- Email services (SendGrid, Mailgun)
+- SMS providers (Twilio, Nexmo)
+- Chat platforms (Slack, Teams)
+- Video conferencing (Zoom, Meet)
+
+## Authentication & Security
+
+### OAuth 2.0
+Implement OAuth 2.0 authentication:
+- Configure OAuth providers
+- Handle authorization flows
+- Manage tokens securely
+- Refresh expired tokens
+
+### API Keys
+Secure API integrations:
+- Generate and store API keys
+- Rotate keys regularly
+- Implement rate limiting
+- Monitor usage
+
+### Encryption
+Protect sensitive data:
+- Encrypt data in transit (TLS/SSL)
+- Encrypt data at rest
+- Manage encryption keys
+- Comply with regulations
+
+## Best Practices
+
+### Error Handling
+Implement robust error handling:
+- Catch and log errors
+- Implement retry logic
+- Provide meaningful error messages
+- Set up monitoring alerts
+
+### Performance
+Optimize integration performance:
+- Use connection pooling
+- Implement caching
+- Batch requests when possible
+- Monitor response times
+
+### Testing
+Test integrations thoroughly:
+- Unit tests for integration logic
+- Integration tests with mock services
+- End-to-end tests
+- Load testing
+
+### Documentation
+Maintain clear documentation:
+- Document API endpoints
+- Provide code examples
+- Keep credentials secure
+- Update regularly
+
+## Monitoring & Maintenance
+
+### Logging
+Implement comprehensive logging:
+- Log all API calls
+- Track errors and warnings
+- Store logs securely
+- Set up log analysis
+
+### Monitoring
+Monitor integration health:
+- Track uptime and availability
+- Monitor response times
+- Set up alerts
+- Review metrics regularly
+
+### Maintenance
+Keep integrations healthy:
+- Update dependencies
+- Monitor for deprecations
+- Test after updates
+- Maintain backward compatibility
+
+## Troubleshooting
+
+### Common Issues
+Resolve common integration problems:
+- Connection timeouts
+- Authentication failures
+- Rate limit exceeded
+- Data format mismatches
+
+### Debugging
+Debug integration issues:
+- Check logs and errors
+- Verify credentials
+- Test API endpoints
+- Review network settings
+
+## Next Steps
+
+- [Quick Start Guide](/en/documentation/pages/getting-started/quick-start)
+- [API Reference](/en/api-reference)
+- [Best Practices](/en/documentation/pages/build/orchestrate-node)
