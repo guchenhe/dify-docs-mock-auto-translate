@@ -1,0 +1,61 @@
+# Deployment Guide
+
+Learn how to deploy Dify in production environments.
+
+## Deployment Options
+
+Dify can be deployed in several ways:
+
+### Cloud Deployment
+
+Deploy Dify on popular cloud platforms:
+
+- **AWS**: Use EC2 instances with Docker
+- **Azure**: Deploy using Azure Container Instances
+- **Google Cloud**: Use GKE for Kubernetes deployment
+
+### Self-Hosted Deployment
+
+Run Dify on your own infrastructure:
+
+1. **Docker Compose** (Recommended for small teams)
+   - Quick setup with minimal configuration
+   - Suitable for development and testing
+
+2. **Kubernetes** (Recommended for production)
+   - Scalable and resilient
+   - Supports high availability
+
+## Environment Configuration
+
+Key environment variables to configure:
+
+```bash
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=your_password
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# API Keys
+OPENAI_API_KEY=your_api_key
+```
+
+## Monitoring
+
+Set up monitoring for your Dify deployment:
+
+- Health checks on `/health` endpoint
+- Metrics collection with Prometheus
+- Log aggregation with ELK stack
+
+## Security Best Practices
+
+- Use HTTPS in production
+- Enable authentication
+- Regularly update dependencies
+- Configure firewalls properly
