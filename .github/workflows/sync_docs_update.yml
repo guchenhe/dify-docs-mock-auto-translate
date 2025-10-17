@@ -111,20 +111,26 @@ jobs:
           
           PR_NUMBER=${{ github.event.pull_request.number }}
           SYNC_BRANCH="docs-sync-pr-${PR_NUMBER}"
+          PR_BRANCH="${{ github.event.pull_request.head.ref }}"
           BASE_SHA="${{ github.event.pull_request.base.sha }}"
           HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-          
+
           # Switch to translation branch
           git fetch origin "$SYNC_BRANCH:$SYNC_BRANCH" || {
             echo "❌ Could not fetch translation branch $SYNC_BRANCH"
             echo "update_successful=false" >> $GITHUB_OUTPUT
             exit 0
           }
-          
+
           git checkout "$SYNC_BRANCH"
-          
-          # Reset translation branch to latest main to get fresh translations
-          git reset --hard origin/main
+
+          # Reset translation branch to main (keep working directory)
+          git reset --soft origin/main
+          git reset
+
+          # Checkout English files from PR to translate
+          git fetch origin "$PR_BRANCH:refs/remotes/origin/$PR_BRANCH"
+          git checkout "origin/$PR_BRANCH" -- en/ || echo "No English files to checkout"
           
           # Re-run translation analysis and generation
           cd tools/translate
@@ -238,8 +244,9 @@ jobs:
           
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          
-          git add .
+
+          # Commit only translation changes (not English files)
+          git add cn/ jp/ docs.json
           git commit -m "🔄 Update translations for PR #${PR_NUMBER}
           
           Updated translations following changes in PR #${PR_NUMBER}.

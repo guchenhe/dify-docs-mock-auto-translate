@@ -291,7 +291,13 @@ jobs:
           # Create a new branch for the sync results
           SYNC_BRANCH="docs-sync-pr-${PR_NUMBER}"
           git checkout -b "$SYNC_BRANCH"
-          
+
+          # Reset branch to main to avoid including English file changes from PR
+          # Use --soft to keep working directory with PR files (needed for translation)
+          git reset --soft origin/main
+          # Unstage everything
+          git reset
+
           # Run synchronization with security constraints
           cd tools/translate
           
@@ -424,9 +430,9 @@ jobs:
           
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          
-          # Commit translation changes
-          git add .
+
+          # Commit translation changes only (not English files from PR)
+          git add cn/ jp/ docs.json
           git commit -m "🌐 Auto-translate documentation for PR #${PR_NUMBER}
 
           Auto-generated translations for documentation changes in PR #${PR_NUMBER}.
