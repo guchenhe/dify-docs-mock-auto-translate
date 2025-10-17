@@ -258,13 +258,14 @@ jobs:
               # Validate file paths again
               for file_info in files_to_sync:
                   file_path = file_info["path"]
-                  
+
                   # Security checks
                   if ".." in file_path or file_path.startswith("/"):
                       print(f"Security error: Invalid path {file_path}")
                       return False
-                  
-                  if not file_path.startswith("en/"):
+
+                  # Allow en/ files and docs.json
+                  if not (file_path.startswith("en/") or file_path == "docs.json"):
                       print(f"Security error: File outside en/ directory: {file_path}")
                       return False
               
