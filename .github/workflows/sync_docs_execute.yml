@@ -345,6 +345,11 @@ jobs:
                   file_path = file_info["path"]
                   print(f"Processing: {file_path}")
 
+                  # Skip docs.json - it's handled separately in structure sync
+                  if file_path == "docs.json":
+                      results["skipped"].append(f"{file_path} (structure file - handled separately)")
+                      continue
+
                   # Skip versioned directories (frozen/archived docs)
                   if file_path.startswith("versions/"):
                       results["skipped"].append(f"{file_path} (versioned - not auto-translated)")
