@@ -463,9 +463,7 @@ jobs:
             --base main \
             --head "$SYNC_BRANCH" \
             --title "🌐 Auto-translations for PR #${PR_NUMBER}: ${ORIGINAL_PR_TITLE}" \
-            --body-file /tmp/translation_pr_body.md \
-            --label "🌐 translation" \
-            --label "🤖 automated" 2>/dev/null || echo "")
+            --body-file /tmp/translation_pr_body.md 2>/dev/null || echo "")
           
           if [ -n "$TRANSLATION_PR_URL" ]; then
             # Extract PR number from URL
