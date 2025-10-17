@@ -190,17 +190,22 @@ jobs:
           # Extract PR number and other metadata
           PR_NUMBER=$(python3 -c "import json; print(json.load(open('analysis.json'))['pr_number'])")
           echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-          
+
+          # Extract head SHA to checkout the PR branch (needed for new files)
+          HEAD_SHA=$(python3 -c "import json; print(json.load(open('analysis.json'))['head_sha'])")
+          echo "head_sha=$HEAD_SHA" >> $GITHUB_OUTPUT
+
           # Check if sync is required
           SYNC_REQUIRED=$(python3 -c "import json; print(str(json.load(open('sync_plan.json'))['sync_required']).lower())")
           echo "sync_required=$SYNC_REQUIRED" >> $GITHUB_OUTPUT
 
-      - name: Checkout base repository
+      - name: Checkout PR branch
         if: steps.extract-artifacts.outputs.sync_required == 'true'
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          ref: ${{ steps.extract-artifacts.outputs.head_sha }}  # Checkout PR's head commit to access new files
 
       - name: Set up Python
         if: steps.extract-artifacts.outputs.sync_required == 'true'
