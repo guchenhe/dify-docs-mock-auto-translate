@@ -1,0 +1,63 @@
+> ⚠️ このドキュメントはAIによって自動翻訳されています。不正確な部分がある場合は、[英語版](../../../../en/documentation/pages/getting-started/deployment.mdx)を参照してください。
+
+# デプロイメントガイド
+
+本番環境でDifyをデプロイする方法を学びます。
+
+## デプロイメントオプション
+
+Difyは複数の方法でデプロイできます：
+
+### クラウドデプロイメント
+
+人気のクラウドプラットフォームでDifyをデプロイ：
+
+- **AWS**: DockerでEC2インスタンスを使用
+- **Azure**: Azure Container Instancesを使用してデプロイ
+- **Google Cloud**: KubernetesデプロイメントにGKEを使用
+
+### セルフホストデプロイメント
+
+独自のインフラストラクチャでDifyを実行：
+
+1. **Docker Compose** (小規模チームに推奨)
+   - 最小限の設定で迅速なセットアップ
+   - 開発とテストに適している
+
+2. **Kubernetes** (本番環境に推奨)
+   - スケーラブルで堅牢
+   - 高可用性をサポート
+
+## 環境設定
+
+設定する主要な環境変数：
+
+```bash
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=your_password
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# API Keys
+OPENAI_API_KEY=your_api_key
+```
+
+## 監視
+
+Difyデプロイメントの監視を設定：
+
+- `/health`エンドポイントでのヘルスチェック
+- Prometheusでのメトリクス収集
+- ELKスタックでのログ集約
+
+## セキュリティのベストプラクティス
+
+- 本番環境ではHTTPSを使用
+- 認証を有効化
+- 依存関係を定期的にアップデート
+- ファイアウォールを適切に設定
