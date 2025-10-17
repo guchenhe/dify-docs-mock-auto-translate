@@ -388,24 +388,33 @@ class DocsSynchronizer:
     def sync_docs_json_structure(self) -> List[str]:
         """Sync docs.json structure across languages"""
         sync_log = []
-        
+
         try:
             docs_data = self.load_docs_json()
             if not docs_data or "navigation" not in docs_data:
                 sync_log.append("ERROR: Invalid docs.json structure")
                 return sync_log
-            
+
             navigation = docs_data["navigation"]
-            if "languages" not in navigation or not isinstance(navigation["languages"], list):
+
+            # Handle both direct languages and versions structure
+            languages_array = None
+            if "languages" in navigation and isinstance(navigation["languages"], list):
+                languages_array = navigation["languages"]
+            elif "versions" in navigation and len(navigation["versions"]) > 0:
+                if "languages" in navigation["versions"][0]:
+                    languages_array = navigation["versions"][0]["languages"]
+
+            if not languages_array:
                 sync_log.append("ERROR: No languages found in navigation")
                 return sync_log
-            
+
             # Find language sections
             en_section = None
-            zh_section = None 
+            zh_section = None
             ja_section = None
-            
-            for lang_data in navigation["languages"]:
+
+            for lang_data in languages_array:
                 if lang_data.get("language") == "en":
                     en_section = lang_data
                 elif lang_data.get("language") == "cn":

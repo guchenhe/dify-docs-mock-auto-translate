@@ -16,8 +16,10 @@ permissions:
 jobs:
   update-translation:
     runs-on: ubuntu-latest
-    # Only run if this is an English-only PR update
-    if: github.event.pull_request.draft == false
+    # Only run if this is an English-only PR update, not a translation PR
+    if: |
+      github.event.pull_request.draft == false &&
+      !startsWith(github.event.pull_request.head.ref, 'docs-sync-pr-')
     steps:
       - name: Checkout PR
         uses: actions/checkout@v4
