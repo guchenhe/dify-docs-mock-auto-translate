@@ -64,28 +64,33 @@ jobs:
               prNumber = '${{ github.event.inputs.pr_number }}';
               console.log(`Manual trigger for PR #${prNumber}`);
 
-              // Find the most recent analyze workflow run for this PR
+              // Find the most recent analyze workflow run for this specific PR
               const runs = await github.rest.actions.listWorkflowRuns({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 workflow_id: 'sync_docs_analyze.yml',
-                per_page: 50
+                per_page: 100
               });
 
-              // Find run that matches our PR
-              const matchingRun = runs.data.workflow_runs.find(run => {
-                return run.conclusion === 'success' &&
-                       run.head_branch.startsWith('test-case') &&
-                       run.event === 'pull_request';
-              });
+              // Find run that matches our specific PR number
+              let matchingRun = null;
+              for (const run of runs.data.workflow_runs) {
+                if (run.conclusion === 'success' && run.event === 'pull_request' && run.pull_requests.length > 0) {
+                  const pullRequest = run.pull_requests[0];
+                  if (pullRequest.number.toString() === prNumber) {
+                    matchingRun = run;
+                    break;
+                  }
+                }
+              }
 
               if (!matchingRun) {
-                console.log('No successful analyze workflow run found');
+                console.log(`No successful analyze workflow run found for PR #${prNumber}`);
                 return false;
               }
 
               runId = matchingRun.id;
-              console.log(`Found analyze workflow run: ${runId}`);
+              console.log(`Found analyze workflow run: ${runId} for PR #${prNumber}`);
             } else {
               // Triggered by workflow_run
               runId = context.payload.workflow_run.id;
