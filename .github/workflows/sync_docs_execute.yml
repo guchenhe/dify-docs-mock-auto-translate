@@ -411,6 +411,8 @@ jobs:
       - name: Commit and create translation PR
         if: steps.sync.outputs.has_changes == 'true'
         id: create-translation-pr
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           PR_NUMBER="${{ steps.extract-artifacts.outputs.pr_number }}"
           SYNC_BRANCH="docs-sync-pr-${PR_NUMBER}"
