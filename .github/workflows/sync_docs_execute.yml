@@ -48,41 +48,93 @@ jobs:
           echo "should_process=true" >> $GITHUB_OUTPUT
 
       - name: Download analysis artifacts
-        if: steps.check-source.outputs.should_process == 'true'
+        if: steps.check-source.outputs.should_process == 'true' || github.event_name == 'workflow_dispatch'
         uses: actions/github-script@v7
         id: download-artifacts
         with:
           script: |
+            const fs = require('fs');
+
+            // Determine which workflow run to get artifacts from
+            let runId;
+            let prNumber;
+
+            if (context.eventName === 'workflow_dispatch') {
+              // Manual trigger - use the pr_number input
+              prNumber = '${{ github.event.inputs.pr_number }}';
+              console.log(`Manual trigger for PR #${prNumber}`);
+
+              // Find the most recent analyze workflow run for this PR
+              const runs = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'sync_docs_analyze.yml',
+                per_page: 50
+              });
+
+              // Find run that matches our PR
+              const matchingRun = runs.data.workflow_runs.find(run => {
+                return run.conclusion === 'success' &&
+                       run.head_branch.startsWith('test-case') &&
+                       run.event === 'pull_request';
+              });
+
+              if (!matchingRun) {
+                console.log('No successful analyze workflow run found');
+                return false;
+              }
+
+              runId = matchingRun.id;
+              console.log(`Found analyze workflow run: ${runId}`);
+            } else {
+              // Triggered by workflow_run
+              runId = context.payload.workflow_run.id;
+              console.log(`Workflow run trigger, run ID: ${runId}`);
+            }
+
+            // List artifacts from the analyze workflow run
             const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              run_id: ${{ github.event.workflow_run.id }}
+              run_id: runId
             });
-            
+
+            console.log(`Found ${artifacts.data.artifacts.length} artifacts`);
+            artifacts.data.artifacts.forEach(a => console.log(`  - ${a.name}`));
+
             const matchArtifact = artifacts.data.artifacts.find(artifact => {
-              return artifact.name.startsWith('docs-sync-analysis-');
+              if (context.eventName === 'workflow_dispatch') {
+                return artifact.name === `docs-sync-analysis-${prNumber}`;
+              } else {
+                return artifact.name.startsWith('docs-sync-analysis-');
+              }
             });
-            
+
             if (!matchArtifact) {
-              console.log('No analysis artifacts found');
+              console.log('No matching analysis artifact found');
               return false;
             }
-            
+
+            console.log(`Downloading artifact: ${matchArtifact.name}`);
+
             const download = await github.rest.actions.downloadArtifact({
               owner: context.repo.owner,
               repo: context.repo.repo,
               artifact_id: matchArtifact.id,
               archive_format: 'zip'
             });
-            
-            const fs = require('fs');
+
             fs.writeFileSync('/tmp/artifacts.zip', Buffer.from(download.data));
-            
+            console.log('Artifact downloaded successfully');
+
             // Extract PR number from artifact name
-            const prNumber = matchArtifact.name.split('-').pop();
+            if (!prNumber) {
+              prNumber = matchArtifact.name.split('-').pop();
+            }
+
             core.setOutput('pr_number', prNumber);
             core.setOutput('artifact_found', 'true');
-            
+
             return true;
 
       - name: Extract and validate artifacts
