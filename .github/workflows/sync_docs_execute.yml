@@ -469,6 +469,9 @@ jobs:
           echo "  Head: $SYNC_BRANCH"
           echo "  Title: 🌐 Auto-translations for PR #${PR_NUMBER}: ${ORIGINAL_PR_TITLE}"
 
+          # Temporarily disable exit on error to capture the output
+          set +e
+
           # Capture both stdout and stderr
           PR_CREATE_OUTPUT=$(gh pr create \
             --base main \
@@ -476,6 +479,9 @@ jobs:
             --title "🌐 Auto-translations for PR #${PR_NUMBER}: ${ORIGINAL_PR_TITLE}" \
             --body-file /tmp/translation_pr_body.md 2>&1)
           PR_CREATE_EXIT_CODE=$?
+
+          # Re-enable exit on error
+          set -e
 
           echo "gh pr create exit code: $PR_CREATE_EXIT_CODE"
           echo "gh pr create output: $PR_CREATE_OUTPUT"
