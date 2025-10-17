@@ -466,33 +466,14 @@ jobs:
           EOF
           
           # Create the translation PR
-          echo "Creating translation PR..."
-          echo "  Base: main"
-          echo "  Head: $SYNC_BRANCH"
-          echo "  Title: 🌐 Auto-translations for PR #${PR_NUMBER}: ${ORIGINAL_PR_TITLE}"
-
-          # Temporarily disable exit on error to capture the output
-          set +e
-
-          # Capture both stdout and stderr
-          PR_CREATE_OUTPUT=$(gh pr create \
+          TRANSLATION_PR_URL=$(gh pr create \
             --base main \
             --head "$SYNC_BRANCH" \
             --title "🌐 Auto-translations for PR #${PR_NUMBER}: ${ORIGINAL_PR_TITLE}" \
-            --body-file /tmp/translation_pr_body.md 2>&1)
-          PR_CREATE_EXIT_CODE=$?
+            --body-file /tmp/translation_pr_body.md 2>&1 || echo "")
 
-          # Re-enable exit on error
-          set -e
-
-          echo "gh pr create exit code: $PR_CREATE_EXIT_CODE"
-          echo "gh pr create output: $PR_CREATE_OUTPUT"
-
-          if [ $PR_CREATE_EXIT_CODE -eq 0 ]; then
-            TRANSLATION_PR_URL="$PR_CREATE_OUTPUT"
-          else
-            echo "❌ Error creating PR: $PR_CREATE_OUTPUT"
-            TRANSLATION_PR_URL=""
+          if [ -z "$TRANSLATION_PR_URL" ]; then
+            echo "❌ Failed to create translation PR"
           fi
           
           if [ -n "$TRANSLATION_PR_URL" ]; then
