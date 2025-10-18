@@ -338,7 +338,7 @@ class DocsSynchronizer:
         """Save docs.json file"""
         try:
             with open(self.docs_json_path, 'w', encoding='utf-8') as f:
-                json.dump(data, f, ensure_ascii=False, indent=4)
+                json.dump(data, f, ensure_ascii=False, indent=2)
             return True
         except Exception as e:
             print(f"Error saving docs.json: {e}")
