@@ -479,7 +479,13 @@ class DocsSynchronizer:
                 
                 # Sync the structure by converting English paths to target language paths
                 if "pages" in en_doc_dropdown:
-                    synced_pages = self.convert_pages_structure(en_doc_dropdown["pages"], target_lang)
+                    # Get existing structure to preserve human translations
+                    existing_pages = target_doc_dropdown.get("pages", [])
+                    synced_pages = self.convert_pages_structure(
+                        en_doc_dropdown["pages"],
+                        target_lang,
+                        existing_pages  # Pass existing structure
+                    )
                     target_doc_dropdown["pages"] = synced_pages
                     sync_log.append(f"INFO: Synced documentation structure for {target_lang}")
             
@@ -496,13 +502,16 @@ class DocsSynchronizer:
         
         return sync_log
     
-    def convert_pages_structure(self, pages_structure, target_lang: str):
-        """Recursively convert English page paths to target language paths"""
+    def convert_pages_structure(self, pages_structure, target_lang: str, existing_structure=None):
+        """
+        Recursively convert English page paths to target language paths.
+        Preserves existing human-translated group names when they exist.
+        """
         if not pages_structure:
             return []
-        
+
         converted = []
-        for item in pages_structure:
+        for index, item in enumerate(pages_structure):
             if isinstance(item, str):
                 # Convert path: en/documentation/pages/... -> target_lang/documentation/pages/...
                 if item.startswith("en/"):
@@ -512,19 +521,37 @@ class DocsSynchronizer:
                     converted.append(item)
             elif isinstance(item, dict):
                 converted_item = {}
+                # Get corresponding existing item at same index
+                existing_item = None
+                if existing_structure and index < len(existing_structure):
+                    existing_item = existing_structure[index]
+
                 for key, value in item.items():
                     if key == "pages" and isinstance(value, list):
-                        converted_item[key] = self.convert_pages_structure(value, target_lang)
+                        # Recursively convert nested pages, passing existing nested structure
+                        existing_nested = None
+                        if isinstance(existing_item, dict) and "pages" in existing_item:
+                            existing_nested = existing_item["pages"]
+                        converted_item[key] = self.convert_pages_structure(
+                            value,
+                            target_lang,
+                            existing_nested
+                        )
                     elif key == "group":
-                        # Translate group names
-                        translated_group = self.get_basic_label_translation(value, target_lang)
-                        converted_item[key] = translated_group
+                        # Preserve existing human-translated group name if it exists
+                        if isinstance(existing_item, dict) and "group" in existing_item:
+                            # Use existing translated group name
+                            converted_item[key] = existing_item["group"]
+                        else:
+                            # New group - use basic translation
+                            translated_group = self.get_basic_label_translation(value, target_lang)
+                            converted_item[key] = translated_group
                     else:
                         converted_item[key] = value
                 converted.append(converted_item)
             else:
                 converted.append(item)
-        
+
         return converted
     
     async def run_sync(self, since_commit: str = "HEAD~1") -> Dict[str, List[str]]:
