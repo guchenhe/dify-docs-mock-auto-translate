@@ -35,7 +35,8 @@
                           "en/documentation/pages/getting-started/introduction",
                           "en/documentation/pages/getting-started/quick-start",
                           "en/documentation/pages/getting-started/key-concepts",
-                          "en/documentation/pages/getting-started/installation"
+                          "en/documentation/pages/getting-started/installation",
+                          "en/documentation/pages/getting-started/support"
                         ]
                       },
                       {
@@ -377,7 +378,9 @@
                         "pages": [
                           "cn/documentation/pages/getting-started/introduction",
                           "cn/documentation/pages/getting-started/quick-start",
-                          "cn/documentation/pages/getting-started/key-concepts"
+                          "cn/documentation/pages/getting-started/key-concepts",
+                          "cn/documentation/pages/getting-started/installation",
+                          "cn/documentation/pages/getting-started/support"
                         ]
                       },
                       {
@@ -755,7 +758,9 @@
                         "pages": [
                           "jp/documentation/pages/getting-started/introduction",
                           "jp/documentation/pages/getting-started/quick-start",
-                          "jp/documentation/pages/getting-started/key-concepts"
+                          "jp/documentation/pages/getting-started/key-concepts",
+                          "jp/documentation/pages/getting-started/installation",
+                          "jp/documentation/pages/getting-started/support"
                         ]
                       },
                       {
@@ -907,6 +912,7 @@
                       {
                         "group": "チュートリアル",
                         "pages": [
+                          "jp/documentation/pages/tutorials/simple-chatbot",
                           "jp/documentation/pages/tutorials/twitter-chatflow",
                           "jp/documentation/pages/tutorials/customer-service-bot",
                           "jp/documentation/pages/tutorials/build-ai-image-generation-app",
@@ -4108,6 +4114,406 @@
                       "versions/legacy/jp/user-guide/management/app-management",
                       "versions/legacy/jp/user-guide/management/team-members-management",
                       "versions/legacy/jp/user-guide/management/personal-account-management"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "version": "简体中文",
+        "tabs": [
+          {
+            "tab": "插件开发",
+            "groups": [
+              {
+                "group": "概念与入门",
+                "pages": [
+                  {
+                    "group": "概览",
+                    "pages": [
+                      "plugin-dev-zh/0111-getting-started-dify-plugin"
+                    ]
+                  },
+                  "plugin-dev-zh/0131-cheatsheet"
+                ]
+              },
+              {
+                "group": "开发实践",
+                "pages": [
+                  {
+                    "group": "快速开始",
+                    "pages": [
+                      "plugin-dev-zh/0211-getting-started-by-prompt",
+                      "plugin-dev-zh/0211-getting-started-dify-tool",
+                      "plugin-dev-zh/0211-getting-started-new-model"
+                    ]
+                  },
+                  {
+                    "group": "开发 Dify 插件",
+                    "pages": [
+                      "plugin-dev-zh/0221-initialize-development-tools",
+                      "plugin-dev-zh/0222-creating-new-model-provider-extra",
+                      "plugin-dev-zh/0222-creating-new-model-provider",
+                      "plugin-dev-zh/0222-debugging-logs",
+                      "plugin-dev-zh/0222-tool-plugin"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "贡献与发布",
+                "pages": [
+                  {
+                    "group": "行为准则与规范",
+                    "pages": [
+                      "plugin-dev-zh/0312-contributor-covenant-code-of-conduct",
+                      "plugin-dev-zh/0312-privacy-protection-guidelines",
+                      "plugin-dev-zh/0312-third-party-signature-verification"
+                    ]
+                  },
+                  {
+                    "group": "发布与上架",
+                    "pages": [
+                      "plugin-dev-zh/0321-plugin-auto-publish-pr",
+                      "plugin-dev-zh/0321-release-overview",
+                      "plugin-dev-zh/0322-release-by-file",
+                      "plugin-dev-zh/0322-release-to-dify-marketplace",
+                      "plugin-dev-zh/0322-release-to-individual-github-repo"
+                    ]
+                  },
+                  {
+                    "group": "常见问题解答",
+                    "pages": [
+                      "plugin-dev-zh/0331-faq"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "实践案例与示例",
+                "pages": [
+                  {
+                    "group": "开发示例",
+                    "pages": [
+                      "plugin-dev-zh/0431-example-overview-and-index",
+                      "plugin-dev-zh/0432-develop-a-slack-bot-plugin",
+                      "plugin-dev-zh/0432-endpoint"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "高级开发",
+                "pages": [
+                  {
+                    "group": "Extension 与 Agent",
+                    "pages": [
+                      "plugin-dev-zh/9231-extension-plugin",
+                      "plugin-dev-zh/9232-agent",
+                      "plugin-dev-zh/9433-agent-strategy-plugin"
+                    ]
+                  },
+                  {
+                    "group": "反向调用",
+                    "pages": [
+                      "plugin-dev-zh/9241-bundle",
+                      "plugin-dev-zh/9241-reverse-invocation",
+                      "plugin-dev-zh/9242-reverse-invocation-app",
+                      "plugin-dev-zh/9242-reverse-invocation-model",
+                      "plugin-dev-zh/9242-reverse-invocation-tool",
+                      "plugin-dev-zh/9243-customizable-model",
+                      "plugin-dev-zh/9243-reverse-invocation-node"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Reference & Specifications",
+                "pages": [
+                  {
+                    "group": "核心规范与功能",
+                    "pages": [
+                      "plugin-dev-zh/0411-doc-contribution-guide",
+                      "plugin-dev-zh/0411-general-specifications",
+                      "plugin-dev-zh/0411-model-designing-rules",
+                      "plugin-dev-zh/0411-model-plugin-introduction",
+                      "plugin-dev-zh/0411-persistent-storage-kv",
+                      "plugin-dev-zh/0411-plugin-info-by-manifest",
+                      "plugin-dev-zh/0411-remote-debug-a-plugin",
+                      "plugin-dev-zh/0411-tool",
+                      "plugin-dev-zh/0412-doc-understanding-the-dimensions",
+                      "plugin-dev-zh/0412-doc-writing-dimensions-guide",
+                      "plugin-dev-zh/0412-model-schema"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "version": "English",
+        "tabs": [
+          {
+            "tab": "Plugin Development",
+            "groups": [
+              {
+                "group": "Concepts & Getting Started",
+                "pages": [
+                  {
+                    "group": "Overview",
+                    "pages": [
+                      "plugin-dev-en/0111-getting-started-dify-plugin"
+                    ]
+                  },
+                  "plugin-dev-en/0131-cheatsheet",
+                  "plugin-dev-en/0131-cli"
+                ]
+              },
+              {
+                "group": "Development Practices",
+                "pages": [
+                  {
+                    "group": "Quick Start",
+                    "pages": [
+                      "plugin-dev-en/0211-getting-started-by-prompt",
+                      "plugin-dev-en/0211-getting-started-dify-tool",
+                      "plugin-dev-en/0211-getting-started-new-model"
+                    ]
+                  },
+                  {
+                    "group": "Developing Dify Plugins",
+                    "pages": [
+                      "plugin-dev-en/0221-initialize-development-tools",
+                      "plugin-dev-en/0222-creating-new-model-provider-extra",
+                      "plugin-dev-en/0222-creating-new-model-provider",
+                      "plugin-dev-en/0222-debugging-logs",
+                      "plugin-dev-en/0222-tool-plugin"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Contribution & Publishing",
+                "pages": [
+                  {
+                    "group": "Code of Conduct & Standards",
+                    "pages": [
+                      "plugin-dev-en/0312-contributor-covenant-code-of-conduct",
+                      "plugin-dev-en/0312-privacy-protection-guidelines",
+                      "plugin-dev-en/0312-third-party-signature-verification"
+                    ]
+                  },
+                  {
+                    "group": "Publishing & Listing",
+                    "pages": [
+                      "plugin-dev-en/0321-plugin-auto-publish-pr",
+                      "plugin-dev-en/0321-release-overview",
+                      "plugin-dev-en/0322-release-by-file",
+                      "plugin-dev-en/0322-release-to-dify-marketplace",
+                      "plugin-dev-en/0322-release-to-individual-github-repo"
+                    ]
+                  },
+                  {
+                    "group": "FAQ",
+                    "pages": [
+                      "plugin-dev-en/0331-faq"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Examples & Use Cases",
+                "pages": [
+                  {
+                    "group": "Development Examples",
+                    "pages": [
+                      "plugin-dev-en/0431-example-overview-and-index",
+                      "plugin-dev-en/0432-develop-a-slack-bot-plugin",
+                      "plugin-dev-en/0432-endpoint"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Advanced Development",
+                "pages": [
+                  {
+                    "group": "Extension & Agent",
+                    "pages": [
+                      "plugin-dev-en/9231-extension-plugin",
+                      "plugin-dev-en/9232-agent",
+                      "plugin-dev-en/9433-agent-strategy-plugin"
+                    ]
+                  },
+                  {
+                    "group": "Reverse Calling",
+                    "pages": [
+                      "plugin-dev-en/9241-bundle",
+                      "plugin-dev-en/9241-reverse-invocation",
+                      "plugin-dev-en/9242-reverse-invocation-app",
+                      "plugin-dev-en/9242-reverse-invocation-model",
+                      "plugin-dev-en/9242-reverse-invocation-tool",
+                      "plugin-dev-en/9243-customizable-model",
+                      "plugin-dev-en/9243-reverse-invocation-node"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Reference & Specifications",
+                "pages": [
+                  {
+                    "group": "Core Specifications & Features",
+                    "pages": [
+                      "plugin-dev-en/0411-doc-contribution-guide",
+                      "plugin-dev-en/0411-general-specifications",
+                      "plugin-dev-en/0411-model-designing-rules",
+                      "plugin-dev-en/0411-model-plugin-introduction",
+                      "plugin-dev-en/0411-persistent-storage-kv",
+                      "plugin-dev-en/0411-plugin-info-by-manifest",
+                      "plugin-dev-en/0411-remote-debug-a-plugin",
+                      "plugin-dev-en/0411-tool",
+                      "plugin-dev-en/0412-doc-understanding-the-dimensions",
+                      "plugin-dev-en/0412-doc-writing-dimensions-guide",
+                      "plugin-dev-en/0412-model-schema"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "version": "日本語",
+        "tabs": [
+          {
+            "tab": "プラグイン開発",
+            "groups": [
+              {
+                "group": "概念と概要",
+                "pages": [
+                  {
+                    "group": "概要",
+                    "pages": [
+                      "plugin-dev-ja/0111-getting-started-dify-plugin"
+                    ]
+                  },
+                  "plugin-dev-ja/0131-cheatsheet"
+                ]
+              },
+              {
+                "group": "開発実践",
+                "pages": [
+                  {
+                    "group": "クイックスタート",
+                    "pages": [
+                      "plugin-dev-ja/0211-getting-started-by-prompt",
+                      "plugin-dev-ja/0211-getting-started-dify-tool",
+                      "plugin-dev-ja/0211-getting-started-new-model"
+                    ]
+                  },
+                  {
+                    "group": "Difyプラグインの開発",
+                    "pages": [
+                      "plugin-dev-ja/0221-initialize-development-tools",
+                      "plugin-dev-ja/0222-creating-new-model-provider-extra",
+                      "plugin-dev-ja/0222-creating-new-model-provider",
+                      "plugin-dev-ja/0222-debugging-logs",
+                      "plugin-dev-ja/0222-tool-plugin"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "貢献と公開",
+                "pages": [
+                  {
+                    "group": "行動規範と基準",
+                    "pages": [
+                      "plugin-dev-ja/0312-contributor-covenant-code-of-conduct",
+                      "plugin-dev-ja/0312-privacy-protection-guidelines",
+                      "plugin-dev-ja/0312-third-party-signature-verification"
+                    ]
+                  },
+                  {
+                    "group": "公開と掲載",
+                    "pages": [
+                      "plugin-dev-ja/0321-plugin-auto-publish-pr",
+                      "plugin-dev-ja/0321-release-overview",
+                      "plugin-dev-ja/0322-release-by-file",
+                      "plugin-dev-ja/0322-release-to-dify-marketplace",
+                      "plugin-dev-ja/0322-release-to-individual-github-repo"
+                    ]
+                  },
+                  {
+                    "group": "よくある質問 (FAQ)",
+                    "pages": [
+                      "plugin-dev-ja/0331-faq"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "実践例とユースケース",
+                "pages": [
+                  {
+                    "group": "開発例",
+                    "pages": [
+                      "plugin-dev-ja/0431-example-overview-and-index",
+                      "plugin-dev-ja/0432-develop-a-slack-bot-plugin",
+                      "plugin-dev-ja/0432-endpoint"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "高度な開発",
+                "pages": [
+                  {
+                    "group": "Extension と Agent",
+                    "pages": [
+                      "plugin-dev-ja/9231-extension-plugin",
+                      "plugin-dev-ja/9232-agent",
+                      "plugin-dev-ja/9433-agent-strategy-plugin"
+                    ]
+                  },
+                  {
+                    "group": "リバースコール",
+                    "pages": [
+                      "plugin-dev-ja/9241-bundle",
+                      "plugin-dev-ja/9241-reverse-invocation",
+                      "plugin-dev-ja/9242-reverse-invocation-app",
+                      "plugin-dev-ja/9242-reverse-invocation-model",
+                      "plugin-dev-ja/9242-reverse-invocation-tool",
+                      "plugin-dev-ja/9243-customizable-model",
+                      "plugin-dev-ja/9243-reverse-invocation-node"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "リファレンスと仕様",
+                "pages": [
+                  {
+                    "group": "コア仕様と機能",
+                    "pages": [
+                      "plugin-dev-ja/0411-doc-contribution-guide",
+                      "plugin-dev-ja/0411-general-specifications",
+                      "plugin-dev-ja/0411-model-designing-rules",
+                      "plugin-dev-ja/0411-model-plugin-introduction",
+                      "plugin-dev-ja/0411-persistent-storage-kv",
+                      "plugin-dev-ja/0411-plugin-info-by-manifest",
+                      "plugin-dev-ja/0411-remote-debug-a-plugin",
+                      "plugin-dev-ja/0411-tool",
+                      "plugin-dev-ja/0412-doc-understanding-the-dimensions",
+                      "plugin-dev-ja/0412-doc-writing-dimensions-guide",
+                      "plugin-dev-ja/0412-model-schema"
                     ]
                   }
                 ]
