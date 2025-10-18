@@ -59,7 +59,8 @@
                           "en/documentation/pages/nodes/variable-assigner",
                           "en/documentation/pages/nodes/parameter-extractor",
                           "en/documentation/pages/nodes/http-request",
-                          "en/documentation/pages/nodes/list-operator"
+                          "en/documentation/pages/nodes/list-operator",
+                          "en/documentation/pages/nodes/webhook"
                         ]
                       },
                       {
@@ -377,7 +378,8 @@
                         "pages": [
                           "cn/documentation/pages/getting-started/introduction",
                           "cn/documentation/pages/getting-started/quick-start",
-                          "cn/documentation/pages/getting-started/key-concepts"
+                          "cn/documentation/pages/getting-started/key-concepts",
+                          "cn/documentation/pages/getting-started/installation"
                         ]
                       },
                       {
@@ -401,7 +403,8 @@
                           "cn/documentation/pages/nodes/variable-assigner",
                           "cn/documentation/pages/nodes/parameter-extractor",
                           "cn/documentation/pages/nodes/http-request",
-                          "cn/documentation/pages/nodes/list-operator"
+                          "cn/documentation/pages/nodes/list-operator",
+                          "cn/documentation/pages/nodes/webhook"
                         ]
                       },
                       {
@@ -755,7 +758,8 @@
                         "pages": [
                           "jp/documentation/pages/getting-started/introduction",
                           "jp/documentation/pages/getting-started/quick-start",
-                          "jp/documentation/pages/getting-started/key-concepts"
+                          "jp/documentation/pages/getting-started/key-concepts",
+                          "jp/documentation/pages/getting-started/installation"
                         ]
                       },
                       {
@@ -779,7 +783,8 @@
                           "jp/documentation/pages/nodes/variable-assigner",
                           "jp/documentation/pages/nodes/parameter-extractor",
                           "jp/documentation/pages/nodes/http-request",
-                          "jp/documentation/pages/nodes/list-operator"
+                          "jp/documentation/pages/nodes/list-operator",
+                          "jp/documentation/pages/nodes/webhook"
                         ]
                       },
                       {
@@ -907,6 +912,7 @@
                       {
                         "group": "チュートリアル",
                         "pages": [
+                          "jp/documentation/pages/tutorials/simple-chatbot",
                           "jp/documentation/pages/tutorials/twitter-chatflow",
                           "jp/documentation/pages/tutorials/customer-service-bot",
                           "jp/documentation/pages/tutorials/build-ai-image-generation-app",
