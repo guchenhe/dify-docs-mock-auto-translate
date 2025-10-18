@@ -35,7 +35,8 @@
                           "en/documentation/pages/getting-started/introduction",
                           "en/documentation/pages/getting-started/quick-start",
                           "en/documentation/pages/getting-started/key-concepts",
-                          "en/documentation/pages/getting-started/installation"
+                          "en/documentation/pages/getting-started/installation",
+                          "en/documentation/pages/getting-started/support"
                         ]
                       },
                       {
@@ -377,7 +378,9 @@
                         "pages": [
                           "cn/documentation/pages/getting-started/introduction",
                           "cn/documentation/pages/getting-started/quick-start",
-                          "cn/documentation/pages/getting-started/key-concepts"
+                          "cn/documentation/pages/getting-started/key-concepts",
+                          "cn/documentation/pages/getting-started/installation",
+                          "cn/documentation/pages/getting-started/support"
                         ]
                       },
                       {
@@ -755,7 +758,9 @@
                         "pages": [
                           "jp/documentation/pages/getting-started/introduction",
                           "jp/documentation/pages/getting-started/quick-start",
-                          "jp/documentation/pages/getting-started/key-concepts"
+                          "jp/documentation/pages/getting-started/key-concepts",
+                          "jp/documentation/pages/getting-started/installation",
+                          "jp/documentation/pages/getting-started/support"
                         ]
                       },
                       {
@@ -907,6 +912,7 @@
                       {
                         "group": "チュートリアル",
                         "pages": [
+                          "jp/documentation/pages/tutorials/simple-chatbot",
                           "jp/documentation/pages/tutorials/twitter-chatflow",
                           "jp/documentation/pages/tutorials/customer-service-bot",
                           "jp/documentation/pages/tutorials/build-ai-image-generation-app",
