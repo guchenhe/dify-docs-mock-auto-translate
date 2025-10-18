@@ -35,7 +35,8 @@
                           "en/documentation/pages/getting-started/introduction",
                           "en/documentation/pages/getting-started/quick-start",
                           "en/documentation/pages/getting-started/key-concepts",
-                          "en/documentation/pages/getting-started/installation"
+                          "en/documentation/pages/getting-started/installation",
+                          "en/documentation/pages/getting-started/resources"
                         ]
                       },
                       {
@@ -377,11 +378,13 @@
                         "pages": [
                           "cn/documentation/pages/getting-started/introduction",
                           "cn/documentation/pages/getting-started/quick-start",
-                          "cn/documentation/pages/getting-started/key-concepts"
+                          "cn/documentation/pages/getting-started/key-concepts",
+                          "cn/documentation/pages/getting-started/installation",
+                          "cn/documentation/pages/getting-started/resources"
                         ]
                       },
                       {
-                        "group": "节点",
+                        "group": "Nodes",
                         "pages": [
                           "cn/documentation/pages/nodes/start",
                           "cn/documentation/pages/nodes/llm",
@@ -450,7 +453,7 @@
                           "cn/documentation/pages/monitor/logs",
                           "cn/documentation/pages/monitor/annotation-reply",
                           {
-                            "group": "集成",
+                            "group": "Integrations",
                             "icon": "grid-2-plus",
                             "pages": [
                               "cn/documentation/pages/monitor/integrations/integrate-langsmith",
@@ -468,12 +471,12 @@
                         "pages": [
                           "cn/documentation/pages/knowledge/readme",
                           {
-                            "group": "创建知识库",
+                            "group": "Create Knowledge",
                             "icon": "square-plus",
                             "pages": [
                               "cn/documentation/pages/knowledge/create-knowledge/introduction",
                               {
-                                "group": "导入文本数据",
+                                "group": "1. Import Text Data",
                                 "pages": [
                                   "cn/documentation/pages/knowledge/create-knowledge/import-text-data/readme",
                                   "cn/documentation/pages/knowledge/create-knowledge/import-text-data/sync-from-notion",
@@ -485,7 +488,7 @@
                             ]
                           },
                           {
-                            "group": "从 Knowledge Pipeline 创建",
+                            "group": "Create from Knowledge Pipeline",
                             "icon": "pipe-section",
                             "pages": [
                               "cn/documentation/pages/knowledge/knowledge-pipeline/readme",
@@ -498,7 +501,7 @@
                             ]
                           },
                           {
-                            "group": "管理知识库",
+                            "group": "Manage Knowledge",
                             "icon": "gear",
                             "pages": [
                               "cn/documentation/pages/knowledge/manage-knowledge/introduction",
@@ -755,11 +758,13 @@
                         "pages": [
                           "jp/documentation/pages/getting-started/introduction",
                           "jp/documentation/pages/getting-started/quick-start",
-                          "jp/documentation/pages/getting-started/key-concepts"
+                          "jp/documentation/pages/getting-started/key-concepts",
+                          "jp/documentation/pages/getting-started/installation",
+                          "jp/documentation/pages/getting-started/resources"
                         ]
                       },
                       {
-                        "group": "ノード",
+                        "group": "Nodes",
                         "pages": [
                           "jp/documentation/pages/nodes/start",
                           "jp/documentation/pages/nodes/llm",
@@ -807,7 +812,7 @@
                         "pages": [
                           "jp/documentation/pages/publish/README",
                           {
-                            "group": "Webアプリ",
+                            "group": "Web App",
                             "icon": "globe",
                             "pages": [
                               "jp/documentation/pages/publish/webapp/workflow-webapp",
@@ -828,7 +833,7 @@
                           "jp/documentation/pages/monitor/logs",
                           "jp/documentation/pages/monitor/annotation-reply",
                           {
-                            "group": "インテグレーション",
+                            "group": "Integrations",
                             "icon": "grid-2-plus",
                             "pages": [
                               "jp/documentation/pages/monitor/integrations/integrate-langsmith",
@@ -846,12 +851,12 @@
                         "pages": [
                           "jp/documentation/pages/knowledge/readme",
                           {
-                            "group": "作成手順",
+                            "group": "Create Knowledge",
                             "icon": "square-plus",
                             "pages": [
                               "jp/documentation/pages/knowledge/create-knowledge/introduction",
                               {
-                                "group": "1. テキストデータのインポート",
+                                "group": "1. Import Text Data",
                                 "pages": [
                                   "jp/documentation/pages/knowledge/create-knowledge/import-text-data/readme",
                                   "jp/documentation/pages/knowledge/create-knowledge/import-text-data/sync-from-notion",
@@ -863,7 +868,7 @@
                             ]
                           },
                           {
-                            "group": "ナレッジパイプライン",
+                            "group": "Create from Knowledge Pipeline",
                             "icon": "pipe-section",
                             "pages": [
                               "jp/documentation/pages/knowledge/knowledge-pipeline/readme",
@@ -876,7 +881,7 @@
                             ]
                           },
                           {
-                            "group": "ナレッジベースの管理",
+                            "group": "Manage Knowledge",
                             "icon": "gear",
                             "pages": [
                               "jp/documentation/pages/knowledge/manage-knowledge/introduction",
@@ -907,6 +912,7 @@
                       {
                         "group": "チュートリアル",
                         "pages": [
+                          "jp/documentation/pages/tutorials/simple-chatbot",
                           "jp/documentation/pages/tutorials/twitter-chatflow",
                           "jp/documentation/pages/tutorials/customer-service-bot",
                           "jp/documentation/pages/tutorials/build-ai-image-generation-app",
