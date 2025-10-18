@@ -10,6 +10,7 @@ import os
 import sys
 import asyncio
 import shutil
+import re
 from pathlib import Path
 from typing import Dict, List, Set, Tuple, Optional, Any
 import subprocess
@@ -175,6 +176,56 @@ class DocsSynchronizer:
         relative_prefix = "../" * target_dir_levels
         return relative_prefix + en_path
     
+    def insert_notice_under_title(self, content: str, notice: str) -> str:
+        """Insert notice after frontmatter or first heading to keep it under the doc title."""
+        if not notice.strip():
+            return content
+
+        if not content:
+            return notice
+
+        bom_prefix = ""
+        if content.startswith("\ufeff"):
+            bom_prefix = "\ufeff"
+            content = content[len("\ufeff"):]
+
+        notice_block = notice if notice.endswith("\n") else f"{notice}\n"
+
+        frontmatter_match = re.match(r"^(---\s*\n.*?\n---\s*\n?)", content, flags=re.DOTALL)
+        if frontmatter_match:
+            frontmatter = frontmatter_match.group(1)
+            remainder = content[frontmatter_match.end():].lstrip("\n")
+
+            final = frontmatter
+            if not final.endswith("\n"):
+                final += "\n"
+            final += notice_block
+            if remainder:
+                final += remainder
+            return bom_prefix + final
+
+        heading_match = re.search(r"(?m)^(#{1,6}\s+.+)$", content)
+        if heading_match:
+            line_start = heading_match.start()
+            line_end = content.find("\n", line_start)
+            if line_end == -1:
+                line_end = len(content)
+            else:
+                line_end += 1
+
+            heading_section = content[:line_end]
+            remainder = content[line_end:].lstrip("\n")
+
+            final = heading_section
+            if not final.endswith("\n"):
+                final += "\n"
+            final += notice_block
+            if remainder:
+                final += remainder
+            return bom_prefix + final
+
+        return bom_prefix + notice_block + content.lstrip("\n")
+
     async def translate_file_with_notice(self, en_file_path: str, target_file_path: str, target_lang: str) -> bool:
         """Translate a file and add AI notice at the top"""
         try:
@@ -223,7 +274,7 @@ class DocsSynchronizer:
             notice = self.notices.get(target_lang, "").format(en_path=en_relative_path)
             
             # Combine notice and translated content
-            final_content = notice + translated_content
+            final_content = self.insert_notice_under_title(translated_content, notice)
             
             # Write to target file
             with open(self.base_dir / target_file_path, 'w', encoding='utf-8') as f:
